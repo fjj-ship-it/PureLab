@@ -1,0 +1,112 @@
+{
+  "log": [
+    {
+      "id": "G-01",
+      "area": "初始统计",
+      "result": "INFO",
+      "detail": "{\"plain\":63,\"empty\":32,\"sel best\":1}"
+    },
+    {
+      "id": "G-02",
+      "area": "进s09",
+      "result": "s09",
+      "detail": ""
+    },
+    {
+      "id": "G-02b",
+      "area": "s09输入框(含checkbox状态)",
+      "result": "INFO",
+      "detail": "[{\"ph\":\"number\",\"val\":\"100.0\",\"checked\":false},{\"ph\":\"输入产出量\",\"val\":\"\",\"checked\":false},{\"ph\":\"checkbox\",\"val\":\"on\",\"checked\":true}]"
+    },
+    {
+      "id": "G-03",
+      "area": "默认+A行应用",
+      "result": "toast=\"\"",
+      "detail": ""
+    },
+    {
+      "id": "G-04",
+      "area": "应用后统计(应无变化)",
+      "result": "确认: A行无变化(被仅填充未完成规则跳过)",
+      "detail": ""
+    },
+    {
+      "id": "G-05",
+      "area": "取消仅填充未完成",
+      "result": "checked=false",
+      "detail": ""
+    },
+    {
+      "id": "G-06",
+      "area": "覆盖模式+A行应用",
+      "result": "toast=\"\"",
+      "detail": ""
+    },
+    {
+      "id": "G-07",
+      "area": "覆盖后统计",
+      "result": "{\"plain\":63,\"empty\":32,\"sel best\":1}",
+      "detail": ""
+    },
+    {
+      "id": "G-07b",
+      "area": "覆盖判定",
+      "result": "FAIL(仍无变化→应用功能失效)",
+      "detail": ""
+    },
+    {
+      "id": "G-07c",
+      "area": "s08进度文本",
+      "result": "INFO",
+      "detail": "未找到 x/96 文本"
+    },
+    {
+      "id": "G-08",
+      "area": "进s12",
+      "result": "s12",
+      "detail": ""
+    },
+    {
+      "id": "G-09",
+      "area": "收藏此条件",
+      "result": "点击=DIV.cta-row \"收藏此条件 →\" toast=\"\"",
+      "detail": ""
+    },
+    {
+      "id": "G-10",
+      "area": "查看完整排名",
+      "result": "屏=s12",
+      "detail": ""
+    },
+    {
+      "id": "G-10b",
+      "area": "排名页内容",
+      "result": "INFO",
+      "detail": "‹ 最佳条件KEY CONDITION C组合C丙酮 : 水 = 3 : 194.2%最佳孔位C7投入量100.0 mg产出量94.2 mg纯化率94.2%收藏后，新建实验时可在「下一轮条件」中由你主动选用该条件；应用不做任何自动推荐。收藏此条件 →查看完整排名"
+    },
+    {
+      "id": "G-11",
+      "area": "排名返回",
+      "result": "→ s07",
+      "detail": ""
+    },
+    {
+      "id": "G-11b",
+      "area": "再返回",
+      "result": "→ s02",
+      "detail": ""
+    },
+    {
+      "id": "G-12",
+      "area": "s07结果tab",
+      "result": "INFO",
+      "detail": "实验工作台WORKSPACE Good morning 今天也顺利完成实验 进行中的实验ONGOING EXP-03重结晶纯化筛选进行中96孔板64/96 孔已录入当前最佳 94.2%进度 66.7%继续实验 → 已归档实验ARCHIVE EXP-02溶解度粗测96孔板 · 2024.06 · 已完成最佳 92.1%EXP-01溶剂体系预筛48孔板 · 2024.05 · 已完成最佳 90.8% 新建实验 →"
+    },
+    {
+      "id": "G-13",
+      "area": "reload后统计",
+      "result": "INFO(恢复初始演示状态)",
+      "detail": ""
+    }
+  ]
+}

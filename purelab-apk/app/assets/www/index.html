@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>PureLab 高通量重结晶实验助手</title>
+<link rel="stylesheet" href="app.css?v=16">
+</head>
+<body>
+<div id="app">
+
+  <!-- 01 启动页 -->
+  <section class="screen" id="s01">
+    <div class="launch" data-go="s02">
+      <svg class="launch-art" viewBox="0 0 220 260" width="220" height="260" fill="none" aria-hidden="true">
+        <path d="M110 244 C108 190 104 120 118 44" stroke="#9CA296" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M116 96 C96 88 82 74 78 52 C100 56 114 72 116 96Z" fill="#536253" opacity=".9"/>
+        <path d="M114 132 C136 124 150 108 152 86 C132 92 118 108 114 132Z" fill="#2F3A31" opacity=".85"/>
+        <path d="M112 170 C92 162 80 148 76 128 C96 132 110 148 112 170Z" fill="#9CA296" opacity=".8"/>
+        <path d="M116 66 C104 58 96 46 94 30 C110 34 118 48 116 66Z" fill="#C1BEB5" opacity=".9"/>
+        <path d="M110 208 C128 202 140 190 144 172 C126 176 112 190 110 208Z" fill="#536253" opacity=".7"/>
+        <circle cx="118" cy="34" r="4" fill="#C0A381" opacity=".85"/>
+        <circle cx="76" cy="126" r="2.5" fill="#C0A381" opacity=".6"/>
+        <circle cx="152" cy="84" r="2.5" fill="#C0A381" opacity=".6"/>
+      </svg>
+      <div class="launch-leaf">
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="none">
+          <path d="M12 21c0-6 2-11 9-14-1 7-4 12-9 14z" fill="#536253"/>
+          <path d="M12 21C8 16 5 13 3 7c6 1 9 6 9 14z" fill="#2F3A31"/>
+        </svg>
+      </div>
+      <div class="launch-brand">PureLab</div>
+      <div class="launch-sub">高通量纯化实验助手</div>
+      <div class="launch-en">RECRYSTALLIZATION · HIGH THROUGHPUT</div>
+      <div class="launch-cta">开始使用</div>
+      <div class="launch-ver">演示数据 · EXP-03</div>
+    </div>
+  </section>
+
+  <!-- 02 首页 -->
+  <section class="screen" id="s02">
+    <header class="nav">
+      <div class="nav-side"></div>
+      <div class="nav-title"><span class="zh">实验工作台</span><span class="en">WORKSPACE</span></div>
+      <div class="nav-side"><button class="nav-avatar" data-go="s15" aria-label="我的">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none">
+          <path d="M12 21c0-6 2-11 9-14-1 7-4 12-9 14z" fill="#F9F2EA"/>
+          <path d="M12 21C8 16 5 13 3 7c6 1 9 6 9 14z" fill="#C1BEB5"/>
+        </svg>
+      </button></div>
+    </header>
+    <div class="page">
+      <div class="greet">
+        <div class="greet-en">Good morning</div>
+        <div class="greet-zh">今天也顺利完成实验</div>
+      </div>
+      <div class="sec-head"><span class="sec-zh">进行中的实验</span><span class="sec-en">ONGOING</span></div>
+      <div id="home-ongoing"></div>
+      <div class="sec-head"><span class="sec-zh">已归档实验</span><span class="sec-en">ARCHIVE</span></div>
+      <div id="home-archive"></div>
+      <div class="cta-row"><button class="cta-line" data-go="s03">新建实验 <i>→</i></button></div>
+    </div>
+  </section>
+
+  <!-- 03 新建实验 -->
+  <section class="screen" id="s03">
+    <header class="nav">
+      <button class="nav-back" data-back>‹</button>
+      <div class="nav-title"><span class="zh">新建实验</span><span class="en">NEW EXPERIMENT</span></div>
+      <div class="nav-side"><button class="nav-text" data-go="s06">跳过</button></div>
+    </header>
+    <div class="stepper">
+      <span class="step on"><i>1</i>基础信息</span><span class="step-line"></span>
+      <span class="step"><i>2</i>条件设置</span><span class="step-line"></span>
+      <span class="step"><i>3</i>确认</span>
+    </div>
+    <div class="page">
+      <div class="form-card">
+        <label class="frow"><span class="flabel">实验名称</span><input id="f-name" value="重结晶纯化筛选-04"></label>
+        <label class="frow"><span class="flabel">待纯化药品</span><input id="f-drug" value="粗品样品 A"></label>
+        <label class="frow"><span class="flabel">初始标样总质量（mg）</span><input id="f-mass" type="number" value="9600"></label>
+        <label class="frow"><span class="flabel">每孔溶剂投入量（mg）</span><input id="f-dose" type="number" step="0.1" value="100.0"></label>
+        <div class="frow"><span class="flabel">预计占用孔数量</span><span class="fval">96 / 96 · 自动</span></div>
+      </div>
+      <p class="hint">96 孔板固定为 8×12（A–H 行 × 1–12 列），每种组合占一整行（12 孔），可在下一步手动调整。</p>
+      <div class="cta-row"><button class="cta-line" data-go="s04">下一步 <i>→</i></button></div>
+    </div>
+  </section>
+
+  <!-- 04 条件设置 -->
+  <section class="screen" id="s04">
+    <header class="nav">
+      <button class="nav-back" data-back>‹</button>
+      <div class="nav-title"><span class="zh">条件设置</span><span class="en">CONDITIONS</span></div>
+      <div class="nav-side"></div>
+    </header>
+    <div class="stepper">
+      <span class="step"><i>1</i>基础信息</span><span class="step-line"></span>
+      <span class="step on"><i>2</i>条件设置</span><span class="step-line"></span>
+      <span class="step"><i>3</i>确认</span>
+    </div>
+    <div class="page">
+      <div class="sec-head"><span class="sec-zh">试剂组合</span><span class="sec-en" id="combo-count">5 组</span></div>
+      <div id="combo-list"></div>
+      <button class="ghost-add" id="combo-add">＋ 新建组合</button>
+      <p class="hint">点击组合卡片勾选本次实验要用的条件（默认不选，可多选）；<b>按住卡片右侧的 ⠿ 上下拖动可调整顺序，编号按新位置自动继承</b>；列表里没有合适的，就点「新建组合」自己建。</p>
+      <div class="cta-row"><button class="cta-line" id="combo-next">下一步 <i>→</i></button></div>
+    </div>
+  </section>
+
+  <!-- 05 孔板分配 -->
+  <section class="screen" id="s05">
+    <header class="nav">
+      <button class="nav-back" data-back>‹</button>
+      <div class="nav-title"><span class="zh">孔板分配</span><span class="en">PLATE MAP</span></div>
+      <div class="nav-side"></div>
+    </header>
+    <div class="stepper">
+      <span class="step"><i>1</i>基础信息</span><span class="step-line"></span>
+      <span class="step on"><i>2</i>条件设置</span><span class="step-line"></span>
+      <span class="step"><i>3</i>确认</span>
+    </div>
+    <div class="page">
+      <div id="assign-cur"></div>
+      <p class="hint" id="assign-note">点击孔位即为当前组合选孔（可连续点选/取消）。</p>
+      <div class="plate-card"><div id="plate-config"></div></div>
+      <div id="legend-config" class="legend"></div>
+      <div class="cta-row"><button class="cta-line" id="assign-step">下一步 <i>→</i></button></div>
+    </div>
+  </section>
+
+  <!-- 06 确认设置 -->
+  <section class="screen" id="s06">
+    <header class="nav">
+      <button class="nav-back" data-back>‹</button>
+      <div class="nav-title"><span class="zh">确认设置</span><span class="en">CONFIRM</span></div>
+      <div class="nav-side"></div>
+    </header>
+    <div class="stepper">
+      <span class="step"><i>1</i>基础信息</span><span class="step-line"></span>
+      <span class="step"><i>2</i>条件设置</span><span class="step-line"></span>
+      <span class="step on"><i>3</i>确认</span>
+    </div>
+    <div class="page">
+      <div class="sec-head"><span class="sec-zh">实验信息确认</span><span class="sec-en">REVIEW</span></div>
+      <div class="form-card" id="confirm-card"></div>
+      <div class="sec-head"><span class="sec-zh">孔板预览</span><span class="sec-en">PLATE PREVIEW</span></div>
+      <div class="plate-card"><div id="plate-confirm"></div></div>
+      <div id="confirm-legend" class="legend"></div>
+      <p class="hint">确认后实验进入执行阶段；模板仅保存实验设计结构，不保存结果。</p>
+      <div class="cta-row"><button class="cta-line" id="btn-create">创建实验 <i>→</i></button></div>
+    </div>
+  </section>
+
+  <!-- 07 实验详情 -->
+  <section class="screen" id="s07">
+    <header class="nav">
+      <button class="nav-back" data-back>‹</button>
+      <div class="nav-title"><span class="zh">实验详情</span><span class="en">RUN</span></div>
+      <div class="nav-side"><button class="nav-chip" data-go="s11">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#C0A381" stroke-width="2.4" stroke-linecap="round"><path d="M5 20V12"/><path d="M12 20V5"/><path d="M19 20v-5"/></svg>结果</button></div>
+    </header>
+    <div class="page">
+      <div class="exp-head" id="exp-head"></div>
+      <div class="stat-row" id="exp-stats"></div>
+      <div class="sec-head"><span class="sec-zh">孔板预览</span><span class="sec-en">TAP TO RECORD</span></div>
+      <div class="plate-card"><div id="plate-mini"></div></div>
+      <p class="hint">点击孔位可查看详情与录入数据。</p>
+      <div class="op-row">
+        <button class="text-act" data-go="s08">进入孔板记录</button>
+        <button class="text-act" data-go="s12">分析孔板最佳条件</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 孔板视图 -->
+  <section class="screen" id="s08">
+    <header class="nav">
+      <button class="nav-back" data-back>‹</button>
+      <div class="nav-title"><span class="zh">孔板记录</span><span class="en">WELL RECORD</span></div>
+      <div class="nav-side"><button class="nav-text" data-go="s09">批量</button></div>
+    </header>
+    <div class="page">
+      <div class="plate-card"><div id="plate-full"></div></div>
+      <div id="legend-full" class="legend"></div>
+      <div class="op-row">
+        <button class="text-act" data-go="s09">批量录入</button>
+        <button class="text-act" id="edit-hint">编辑数据</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 09 批量录入 -->
+  <section class="screen" id="s09">
+    <header class="nav">
+      <button class="nav-back" data-back>‹</button>
+      <div class="nav-title"><span class="zh">批量录入产出量</span><span class="en">BATCH ENTRY</span></div>
+      <div class="nav-side"></div>
+    </header>
+    <div class="page">
+      <div class="seg" id="batch-seg">
+        <button class="seg-item" data-seg="area">按区域录入</button>
+        <button class="seg-item" data-seg="combo">按组合录入</button>
+        <button class="seg-item active" data-seg="pick">点选孔位</button>
+      </div>
+      <div class="sec-head"><span class="sec-zh" id="batch-sel-title">选择区域</span><span class="sec-en" id="batch-sel-info">未选择</span></div>
+      <div class="chip-wrap" id="batch-chips"></div>
+      <div class="plate-card" id="pick-plate-card" style="display:none"><div id="plate-pick"></div></div>
+      <div class="form-card">
+        <label class="frow"><span class="flabel">投入量（mg）</span><input id="b-in" type="number" step="0.1" value="100.0"><span class="fsuffix">适用于所选全部孔位</span></label>
+        <label class="frow"><span class="flabel">产出量（mg）</span><input id="b-out" type="number" step="0.1" placeholder="输入产出量"></label>
+        <label class="frow check"><input type="checkbox" id="b-onlyempty" checked><span class="flabel">仅填充未完成孔位</span></label>
+      </div>
+      <div class="cta-row"><button class="cta-line" id="b-apply">应用到所选孔位 <i>→</i></button></div>
+    </div>
+  </section>
+
+  <!-- 10 数据详情 -->
+  <section class="screen" id="s10">
+    <header class="nav">
+      <button class="nav-back" data-back>‹</button>
+      <div class="nav-title"><span class="zh">单孔详情</span><span class="en">WELL DETAIL</span></div>
+      <div class="nav-side"></div>
+    </header>
+    <div class="page" id="well-page"></div>
+    <div class="well-nav-bar" id="well-nav-bar"></div>
+  </section>
+
+  <!-- 11 结果总览 -->
+  <section class="screen" id="s11">
+    <header class="nav">
+      <button class="nav-back" data-back>‹</button>
+      <div class="nav-title"><span class="zh">结果总览</span><span class="en">RESULTS</span></div>
+      <div class="nav-side"></div>
+    </header>
+    <div class="page" id="results-page"></div>
+  </section>
+
+  <!-- 12 最佳条件 -->
+  <section class="screen" id="s12">
+    <header class="nav">
+      <button class="nav-back" data-back>‹</button>
+      <div class="nav-title"><span class="zh">最佳条件</span><span class="en">KEY CONDITION</span></div>
+      <div class="nav-side"></div>
+    </header>
+    <div class="page" id="best-page"></div>
+  </section>
+
+  <!-- 13 结果排名 -->
+  <section class="screen" id="s13">
+    <header class="nav">
+      <button class="nav-back" data-back>‹</button>
+      <div class="nav-title"><span class="zh">结果排名</span><span class="en">RANKING</span></div>
+      <div class="nav-side"><button class="nav-text" id="btn-export">导出</button></div>
+    </header>
+    <div class="page" id="rank-page"></div>
+  </section>
+
+  <!-- 14 试剂库 -->
+  <section class="screen" id="s14">
+    <header class="nav">
+      <button class="nav-back" data-back>‹</button>
+      <div class="nav-title"><span class="zh">试剂库</span><span class="en">REAGENTS</span></div>
+      <div class="nav-side"></div>
+    </header>
+    <div class="page" id="reagent-page"></div>
+  </section>
+
+  <!-- 15 我的 -->
+  <section class="screen" id="s15">
+    <header class="nav">
+      <button class="nav-back" data-back>‹</button>
+      <div class="nav-title"><span class="zh">我的</span><span class="en">PROFILE</span></div>
+      <div class="nav-side"></div>
+    </header>
+    <div class="page" id="profile-page"></div>
+  </section>
+
+  <!-- Bottom Sheet -->
+  <div class="sheet-mask" id="sheet-mask"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheet-title"></div>
+    <div class="sheet-body" id="sheet-body"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+<script src="app.js?v=16"></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+{
+  "log": [
+    {
+      "id": "J-00",
+      "area": "到s07",
+      "result": "s07",
+      "detail": ""
+    },
+    {
+      "id": "J-01",
+      "area": "[复核]s07[结果]→s11",
+      "result": "点击=BUTTON.nav-text \"结果\" → 屏=s11",
+      "detail": ""
+    },
+    {
+      "id": "J-02",
+      "area": "s11 内容",
+      "result": "‹ 结果总览RESULTS 94.2%当前最佳纯化率C7（组合C）64/96已录入 66.7%88.5%平均纯化率32 孔待录入纯化率分布DISTRIBUTION纯化率 <852纯化率 85–9055纯化率 90–957纯化率 ≥950组合均值BY COMBO组合A88.0组合B88.8组合C89.8组合D89.5组合E85.6最佳条件结果排名",
+      "detail": ""
+    },
+    {
+      "id": "J-03",
+      "area": "s11→s13",
+      "result": "点击=BUTTON.text-act \"结果排名\" → 屏=s13",
+      "detail": ""
+    },
+    {
+      "id": "J-04",
+      "area": "s13 排名内容",
+      "result": "‹ 结果排名RANKING 导出 全部组合组合A组合B组合C组合D组合E1C7组合C94.2%2D4组合D93.1%3C3组合C92.8%4B6组合B91.5%5A2组合A90.4%6H1组合C90.0%7H5组合C90.0%8C10组合C89.9%9H8组合C89.9%10D2组合D89.8%11B1组合B89.6%12H4组合C89.6%13B8组合B89.5%14H11组合C89.5%15C2组合C89.4%16D5组合D89.4%17H7组合C89.3%18B4组合B",
+      "detail": ""
+    },
+    {
+      "id": "J-05",
+      "area": "s13→back",
+      "result": "→ s11",
+      "detail": ""
+    },
+    {
+      "id": "J-06",
+      "area": "back",
+      "result": "→ s07",
+      "detail": ""
+    },
+    {
+      "id": "J-07",
+      "area": "到s12",
+      "result": "s12",
+      "detail": ""
+    },
+    {
+      "id": "J-08",
+      "area": "[复核]s12[查看完整排名]→s13",
+      "result": "点击=BUTTON.text-act \"查看完整排名\" → 屏=s13",
+      "detail": ""
+    },
+    {
+      "id": "J-09",
+      "area": "回到",
+      "result": "s07",
+      "detail": ""
+    },
+    {
+      "id": "J-10",
+      "area": "到s08",
+      "result": "s08",
+      "detail": ""
+    },
+    {
+      "id": "J-11",
+      "area": "点C1→s10",
+      "result": "屏=s10",
+      "detail": ""
+    },
+    {
+      "id": "J-12",
+      "area": "[复核]s10[编辑]",
+      "result": "点击=BUTTON#w-edit.nav-text \"编辑\" 编辑框=true",
+      "detail": ""
+    },
+    {
+      "id": "J-13",
+      "area": "[复核]s10保存",
+      "result": "点击=DIV#well-edit-slot. \"保存\" C1: output=88.8 purity=88.8%",
+      "detail": ""
+    },
+    {
+      "id": "J-14",
+      "area": "保存反馈",
+      "result": "toast=\"(消失)\"",
+      "detail": ""
+    }
+  ]
+}

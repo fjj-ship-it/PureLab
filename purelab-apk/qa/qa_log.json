@@ -1,0 +1,127 @@
+{
+  "log": [
+    {
+      "id": "A-00",
+      "area": "环境",
+      "result": "INFO",
+      "detail": "首次加载，可见屏=s01，localStorage keys=[]"
+    },
+    {
+      "id": "A-01",
+      "area": "首页/启动页",
+      "result": "PASS",
+      "detail": "点击\"开始使用\" → s02"
+    },
+    {
+      "id": "A-02",
+      "area": "工作台",
+      "result": "INFO",
+      "detail": "内容: 实验工作台WORKSPACE Good morning 今天也顺利完成实验 进行中的实验ONGOING EXP-03重结晶纯化筛选进行中96孔板64/96 孔已录入当前最佳 94.2%进度 66.7%继续实验 → 已归档实验ARCHIVE EXP-02溶解度粗测96孔板 · 2024.06 · 已完成最佳 92.1%EXP-01溶剂体系预筛48孔板 · 2024.05 · 已完成最佳 90.8% "
+    },
+    {
+      "id": "A-03",
+      "area": "工作台-底部导航",
+      "result": "INFO",
+      "detail": "无底部导航（符合\"文字+细线\"设计约束）"
+    },
+    {
+      "id": "A-04",
+      "area": "工作台-实验卡片",
+      "result": "PASS",
+      "detail": "点击\"EXP-03\" → s07"
+    },
+    {
+      "id": "A-05",
+      "area": "实验详情",
+      "result": "INFO",
+      "detail": "内容: ‹ 实验详情RUN 结果 EXP-03 · 重结晶纯化筛选96孔板 · 进行中 · 待纯化药品：粗品样品 A 64/96 孔已录入 66.7%94.2%当前最佳 · C788.5%平均纯化率 孔板预览TAP TO RECORD 123456789101112ABCDEFGH 进入孔板记录 分析孔板最佳条件"
+    },
+    {
+      "id": "A-06",
+      "area": "详情-结果tab",
+      "result": "INFO",
+      "detail": "点击\"结果\" → 内容: ‹ 实验详情RUN 结果 EXP-03 · 重结晶纯化筛选96孔板 · 进行中 · 待纯化药品：粗品样品 A 64/96 孔已录入 66.7%94.2%当前最佳 · C788.5%平均纯化率 孔板预览TAP TO RECORD 123456789101112ABCDEFGH 进入孔板记录 分析孔板最"
+    },
+    {
+      "id": "A-07",
+      "area": "详情-返回",
+      "result": "PASS",
+      "detail": "点击\"‹\" → s02"
+    },
+    {
+      "id": "A-08",
+      "area": "工作台-继续实验",
+      "result": "PASS",
+      "detail": "点击\"继续实验 →\" → s07"
+    },
+    {
+      "id": "A-09",
+      "area": "工作台-新建实验入口",
+      "result": "INFO",
+      "detail": "点击\"新建实验 →\" → s02"
+    },
+    {
+      "id": "A-10",
+      "area": "新建实验-表单",
+      "result": "INFO",
+      "detail": "内容: 实验工作台WORKSPACE Good morning 今天也顺利完成实验 进行中的实验ONGOING EXP-03重结晶纯化筛选进行中96孔板64/96 孔已录入当前最佳 94.2%进度 66.7%继续实验 → 已归档实验ARCHIVE EXP-02溶解度粗测96孔板 · 2024.06 · 已完成最佳 92.1%EXP-01溶剂体系预筛48孔板 · 2024.05 · 已完成最佳 90.8% 新建实验 →"
+    },
+    {
+      "id": "A-11",
+      "area": "新建实验-输入框",
+      "result": "INFO",
+      "detail": "输入框: []"
+    },
+    {
+      "id": "A-12",
+      "area": "新建-药品名输入",
+      "result": "FAIL",
+      "detail": "无可输入的药品名输入框"
+    },
+    {
+      "id": "A-13",
+      "area": "新建-返回后数据保留",
+      "result": "FAIL",
+      "detail": "返回 → s02，重新进入后输入框值=\"无输入框\""
+    },
+    {
+      "id": "A-14",
+      "area": "新建-下一步",
+      "result": "PASS",
+      "detail": "点击\"继续实验 →\" → s07"
+    },
+    {
+      "id": "A-15",
+      "area": "条件设置",
+      "result": "INFO",
+      "detail": "当前屏=s07 内容: ‹ 实验详情RUN 结果 EXP-03 · 重结晶纯化筛选96孔板 · 进行中 · 待纯化药品：粗品样品 A 64/96 孔已录入 66.7%94.2%当前最佳 · C788.5%平均纯化率 孔板预览TAP TO RECORD 123456789101112ABCDEFGH 进入孔板记录 分析孔板最佳条件"
+    },
+    {
+      "id": "A-16",
+      "area": "条件-选择组合C",
+      "result": "已点击\"C\"",
+      "detail": ""
+    },
+    {
+      "id": "A-16b",
+      "area": "条件-选择组合C",
+      "result": "INFO",
+      "detail": "点击后屏=s07"
+    },
+    {
+      "id": "A-17",
+      "area": "条件-进入分配",
+      "result": "未找到分配入口",
+      "detail": ""
+    },
+    {
+      "id": "A-18",
+      "area": "孔板分配",
+      "result": "INFO",
+      "detail": "当前屏=s07 内容: ‹ 实验详情RUN 结果 EXP-03 · 重结晶纯化筛选96孔板 · 进行中 · 待纯化药品：粗品样品 A 64/96 孔已录入 66.7%94.2%当前最佳 · C788.5%平均纯化率 孔板预览TAP TO RECORD 123456789101112ABCDEFGH 进入孔板记录 分析孔板最佳条件"
+    }
+  ],
+  "pageErrors": [
+    "console: Failed to load resource: the server responded with a status of 404 (File not found)"
+  ]
+}

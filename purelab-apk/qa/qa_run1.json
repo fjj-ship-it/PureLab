@@ -1,0 +1,77 @@
+{
+  "log": [
+    {
+      "step": "S1-01",
+      "area": "启动页",
+      "result": "INFO",
+      "detail": "初始可见屏=s01"
+    },
+    {
+      "step": "S1-02",
+      "area": "首页-开始使用",
+      "result": "PASS",
+      "detail": "点击 DIV.launch-cta → 跳转 s02"
+    },
+    {
+      "step": "S1-03",
+      "area": "工作台",
+      "result": "INFO",
+      "detail": "可见元素文本: 实验工作台WORKSPACE Good morning 今天也顺利完成实验 进行中的实验ONGOING EXP-03重结晶纯化筛选进行中96孔板64/96 孔已录入当前最佳 94.2%进度 66.7%继续实验 → 已归档实验ARCHIVE EXP-02溶解度粗测96孔板 · 2024.06 · 已完成最佳 92.1%EXP-01溶剂体系预筛48孔板 · 2024.05 · 已完成最佳 90.8% 新建实验 →"
+    },
+    {
+      "step": "S1-04",
+      "area": "首页-底部导航",
+      "result": "INFO",
+      "detail": "界面上未发现底部导航（符合设计约束：无 Bottom Tab）"
+    },
+    {
+      "step": "S1-05",
+      "area": "首页-实验卡片",
+      "result": "PASS",
+      "detail": "点击 SPAN.exp-id → s07"
+    },
+    {
+      "step": "S1-06",
+      "area": "详情-返回按钮",
+      "result": "FAIL",
+      "detail": "未找到 ← 返回按钮"
+    },
+    {
+      "step": "S1-07",
+      "area": "首页-继续实验",
+      "result": "FAIL",
+      "detail": "未找到\"继续实验\""
+    },
+    {
+      "step": "S1-08",
+      "area": "返回逻辑",
+      "result": "INFO",
+      "detail": "当前屏无 ← 按钮（可能为顶级页）"
+    },
+    {
+      "step": "S1-09",
+      "area": "首页-新建实验入口",
+      "result": "FAIL",
+      "detail": "未找到\"新建实验\""
+    },
+    {
+      "step": "S1-10",
+      "area": "新建实验",
+      "result": "INFO",
+      "detail": "表单元素: ‹ 实验详情RUN 结果 EXP-03 · 重结晶纯化筛选96孔板 · 进行中 · 待纯化药品：粗品样品 A 64/96 孔已录入 66.7%94.2%当前最佳 · C788.5%平均纯化率 孔板预览TAP TO RECORD 123456789101112ABCDEFGH 进入孔板记录 分析孔板最佳条件"
+    },
+    {
+      "step": "S1-11",
+      "area": "新建-输入框",
+      "result": "INFO",
+      "detail": "发现 0 个输入框"
+    },
+    {
+      "step": "S1-14",
+      "area": "新建-下一步",
+      "result": "FAIL",
+      "detail": "未找到\"下一步\"按钮"
+    }
+  ],
+  "pageErrors": []
+}

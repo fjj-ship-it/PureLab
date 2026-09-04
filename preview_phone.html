@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PureLab 手机壳预览</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: radial-gradient(1200px 800px at 50% 30%, #23281f 0%, #10120e 70%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    padding: 32px 16px;
+  }
+  .stage { display: flex; align-items: center; gap: 48px; flex-wrap: wrap; justify-content: center; }
+
+  /* ---------- 手机壳 ---------- */
+  .phone {
+    position: relative;
+    width: 402px;
+    height: 848px;
+    background: linear-gradient(145deg, #3a3d42 0%, #17181b 55%, #2c2e33 100%);
+    border-radius: 62px;
+    padding: 10px;
+    box-shadow:
+      0 0 0 2px #0a0a0c,
+      0 30px 80px rgba(0,0,0,.65),
+      0 8px 24px rgba(0,0,0,.5),
+      inset 0 1px 1px rgba(255,255,255,.18);
+    flex-shrink: 0;
+  }
+  /* 侧边实体键 */
+  .phone::before {
+    content: "";
+    position: absolute;
+    left: -3px; top: 190px;
+    width: 3px; height: 96px;
+    background: linear-gradient(#43464c, #24262a);
+    border-radius: 3px 0 0 3px;
+  }
+  .phone::after {
+    content: "";
+    position: absolute;
+    right: -3px; top: 220px;
+    width: 3px; height: 148px;
+    background: linear-gradient(#43464c, #24262a);
+    border-radius: 0 3px 3px 0;
+  }
+  .screen {
+    position: relative;
+    width: 100%; height: 100%;
+    border-radius: 52px;
+    overflow: hidden;
+    background: #F9F2EA;
+  }
+  .screen iframe {
+    width: 100%; height: 100%;
+    border: 0;
+    display: block;
+  }
+  /* 灵动岛 */
+  .island {
+    position: absolute;
+    top: 14px; left: 50%;
+    transform: translateX(-50%);
+    width: 118px; height: 34px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 5;
+    box-shadow: inset 0 0 6px rgba(255,255,255,.06);
+  }
+  .island::after {
+    content: "";
+    position: absolute;
+    right: 11px; top: 50%;
+    transform: translateY(-50%);
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #1e2a38 0%, #0a0f14 60%);
+    box-shadow: inset 0 0 2px rgba(90,140,200,.5);
+  }
+  /* Home 指示条 */
+  .home-bar {
+    position: absolute;
+    bottom: 8px; left: 50%;
+    transform: translateX(-50%);
+    width: 130px; height: 5px;
+    border-radius: 3px;
+    background: rgba(0,0,0,.28);
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  /* ---------- 信息栏 ---------- */
+  .info {
+    color: #cfc8bd;
+    max-width: 380px;
+  }
+  .info h1 {
+    font-size: 26px;
+    color: #F9F2EA;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .info .tag {
+    display: inline-block;
+    font-size: 12px;
+    color: #2F3A31;
+    background: #C0A381;
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-bottom: 22px;
+  }
+  .info ul { list-style: none; font-size: 14px; line-height: 2.1; color: #a89f92; }
+  .info li b { color: #d8d3cc; font-weight: 600; }
+  .hint {
+    margin-top: 24px;
+    font-size: 12.5px;
+    line-height: 1.8;
+    color: #6f6a60;
+    border-left: 2px solid #536253;
+    padding-left: 12px;
+  }
+  @media (max-width: 900px) { .info { display: none; } }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="phone">
+      <div class="screen">
+        <iframe src="purelab-apk/app/assets/www/index.html" title="PureLab" name="purelab"></iframe>
+        <div class="island"></div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="info">
+      <h1>PureLab</h1>
+      <span class="tag">高通量重结晶实验 App · V1.0</span>
+      <ul>
+        <li><b>15 屏</b>　启动 → 实验 → 孔板 → 数据 → 结果 → 我的</li>
+        <li><b>分辨率</b>　402 × 848（iPhone 16 Pro 比例）</li>
+        <li><b>数据</b>　localStorage 本地持久化，可刷新验证</li>
+        <li><b>最新构建</b>　2026-09-04 16:57（回归 18/18 全绿）</li>
+      </ul>
+      <div class="hint">
+        可直接操作：新建实验、批量录入、编辑孔位、收藏、排名均可用。<br>
+        灵动岛与 Home 条为外壳装饰，不遮挡交互。
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,136 @@
+{
+  "log": [
+    {
+      "id": "I-01",
+      "area": "进工作台",
+      "result": "s02",
+      "detail": ""
+    },
+    {
+      "id": "I-02",
+      "area": "[复核]新建实验 →",
+      "result": "点击=BUTTON.cta-line \"新建实验 →\" → 屏=s03",
+      "detail": ""
+    },
+    {
+      "id": "I-03",
+      "area": "s03 填表",
+      "result": "name=\"溶解度筛选-04\" drug=\"对乙酰氨基酚粗品\"",
+      "detail": ""
+    },
+    {
+      "id": "I-04",
+      "area": "s03→s04",
+      "result": "点击=BUTTON.cta-line \"下一步 →\" → 屏=s04",
+      "detail": ""
+    },
+    {
+      "id": "I-05",
+      "area": "s04 内容",
+      "result": "‹ 条件设置CONDITIONS 试剂组合5 组 A组合A乙醇 : 水 = 3 : 1B组合B甲醇 : 水 = 3 : 1C组合C丙酮 : 水 = 3 : 1D组合D乙醇 : 丙酮 : 水 = 2 : 1 : 1E组合E异丙醇 : 水 = 1 : 1 ＋ 新建组合 下一步 →",
+      "detail": ""
+    },
+    {
+      "id": "I-06",
+      "area": "s04→s05",
+      "result": "→ 屏=s05",
+      "detail": ""
+    },
+    {
+      "id": "I-07",
+      "area": "s05→s06",
+      "result": "→ 屏=s06",
+      "detail": ""
+    },
+    {
+      "id": "I-08",
+      "area": "s06 确认卡",
+      "result": "‹ 确认设置CONFIRM 实验信息确认REVIEW 实验名称溶解度筛选-04待纯化药品对乙酰氨基酚粗品初始标样总质量9600 mg每孔溶剂投入量100.0 mg试剂组合5 个预计占用孔数量96 / 96 确认后实验进入执行阶段；模板仅保存实验设计结构，不保存结果。 创建实验 →",
+      "detail": ""
+    },
+    {
+      "id": "I-09",
+      "area": "创建实验",
+      "result": "点击=BUTTON#btn-create.cta-line \"创建实验 →\" → 屏=s07 | [object Promise]",
+      "detail": ""
+    },
+    {
+      "id": "I-10",
+      "area": "进s08",
+      "result": "s08",
+      "detail": ""
+    },
+    {
+      "id": "I-11",
+      "area": "进s09",
+      "result": "s09",
+      "detail": ""
+    },
+    {
+      "id": "I-12",
+      "area": "[复核]s09应用",
+      "result": "点击=BUTTON#b-apply.cta-line \"应用到所选孔位 →\" toast=\"已应用至 4 孔\" done:64→68 | [object Promise]",
+      "detail": ""
+    },
+    {
+      "id": "I-13",
+      "area": "回s08",
+      "result": "s07",
+      "detail": ""
+    },
+    {
+      "id": "I-14",
+      "area": "打开C1详情",
+      "result": "屏=s08",
+      "detail": ""
+    },
+    {
+      "id": "I-15",
+      "area": "[复核]s10编辑",
+      "result": "点击=null 编辑框出现=false",
+      "detail": ""
+    },
+    {
+      "id": "I-17",
+      "area": "回s07",
+      "result": "s06",
+      "detail": ""
+    },
+    {
+      "id": "I-18",
+      "area": "进s12",
+      "result": "s06",
+      "detail": ""
+    },
+    {
+      "id": "I-19",
+      "area": "[复核]查看完整排名",
+      "result": "点击=null → 屏=s06",
+      "detail": ""
+    },
+    {
+      "id": "I-20",
+      "area": "s13 排名页",
+      "result": "‹ 确认设置CONFIRM 实验信息确认REVIEW 实验名称溶解度筛选-04待纯化药品对乙酰氨基酚粗品初始标样总质量9600 mg每孔溶剂投入量100.0 mg试剂组合5 个预计占用孔数量96 / 96 确认后实验进入执行阶段；模板仅保存实验设计结构，不保存结果。 创建实验 →",
+      "detail": ""
+    },
+    {
+      "id": "I-21",
+      "area": "[复核]s07[结果]→s11",
+      "result": "点击=null → 屏=s04",
+      "detail": ""
+    },
+    {
+      "id": "I-22",
+      "area": "s11 结果总览",
+      "result": "‹ 条件设置CONDITIONS 试剂组合5 组 A组合A乙醇 : 水 = 3 : 1B组合B甲醇 : 水 = 3 : 1C组合C丙酮 : 水 = 3 : 1D组合D乙醇 : 丙酮 : 水 = 2 : 1 : 1E组合E异丙醇 : 水 = 1 : 1 ＋ 新建组合 下一步 →",
+      "detail": ""
+    },
+    {
+      "id": "I-23",
+      "area": "[确认]s02 找\"我的\"入口",
+      "result": "点击=DIV#app. \"PureLab\n      高通量纯化实验助手\n\" → s02",
+      "detail": ""
+    }
+  ]
+}

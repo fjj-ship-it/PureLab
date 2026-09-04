@@ -1,0 +1,142 @@
+{
+  "log": [
+    {
+      "id": "H-s01",
+      "area": "内容直读",
+      "result": "INFO",
+      "detail": "[交互元素1个] PureLab 高通量纯化实验助手 RECRYSTALLIZATION · HIGH THROUGHPUT 开始使用 演示数据 · EXP-03"
+    },
+    {
+      "id": "H-s02",
+      "area": "内容直读",
+      "result": "INFO",
+      "detail": "[交互元素2个] 实验工作台WORKSPACE Good morning 今天也顺利完成实验 进行中的实验ONGOING EXP-03重结晶纯化筛选进行中96孔板64/96 孔已录入当前最佳 94.2%进度 66.7%继续实验 → 已归档实验ARCHIVE EXP-02溶解度粗测96孔板 · 2024.06 · 已完成最佳 92.1%EXP-01溶剂体系预筛48孔板 · 2024.05 · 已完成最佳 90.8% 新建实验 →"
+    },
+    {
+      "id": "H-s03",
+      "area": "内容直读",
+      "result": "INFO",
+      "detail": "[交互元素7个] ‹ 新建实验NEW EXPERIMENT 跳过 实验名称 待纯化药品 初始标样总质量（mg） 每孔溶剂投入量（mg） 预计占用孔数量96 / 96 · 自动 96 孔板固定为 8×12（A–H 行 × 1–12 列），组合将按行自动落孔，可在下一步手动调整。 下一步 →"
+    },
+    {
+      "id": "H-s04",
+      "area": "内容直读",
+      "result": "INFO",
+      "detail": "[交互元素3个] ‹ 条件设置CONDITIONS 试剂组合5 组 ＋ 新建组合 下一步 →"
+    },
+    {
+      "id": "H-s05",
+      "area": "内容直读",
+      "result": "INFO",
+      "detail": "[交互元素4个] ‹ 孔板分配PLATE MAP 自动分配 自动调整 已按组合数量自动填入孔位，可手动调整。 下一步 →"
+    },
+    {
+      "id": "H-s06",
+      "area": "内容直读",
+      "result": "INFO",
+      "detail": "[交互元素2个] ‹ 确认设置CONFIRM 实验信息确认REVIEW 确认后实验进入执行阶段；模板仅保存实验设计结构，不保存结果。 创建实验 →"
+    },
+    {
+      "id": "H-s07",
+      "area": "内容直读",
+      "result": "INFO",
+      "detail": "[交互元素4个] ‹ 实验详情RUN 结果 孔板预览TAP TO RECORD 进入孔板记录 分析孔板最佳条件"
+    },
+    {
+      "id": "H-s08",
+      "area": "内容直读",
+      "result": "INFO",
+      "detail": "[交互元素4个] ‹ 孔板记录WELL RECORD 批量 批量录入 编辑数据"
+    },
+    {
+      "id": "H-s09",
+      "area": "内容直读",
+      "result": "INFO",
+      "detail": "[交互元素7个] ‹ 批量录入产出量BATCH ENTRY 按区域录入 按组合录入 选择区域未选择 投入量（mg）适用于所选全部孔位 产出量（mg） 仅填充未完成孔位 应用到所选孔位 →"
+    },
+    {
+      "id": "H-s10",
+      "area": "内容直读",
+      "result": "INFO",
+      "detail": "[交互元素2个] ‹ 单孔详情WELL DETAIL 编辑"
+    },
+    {
+      "id": "H-s11",
+      "area": "内容直读",
+      "result": "INFO(疑似空壳)",
+      "detail": "[交互元素1个] ‹ 结果总览RESULTS"
+    },
+    {
+      "id": "H-s12",
+      "area": "内容直读",
+      "result": "INFO(疑似空壳)",
+      "detail": "[交互元素1个] ‹ 最佳条件KEY CONDITION"
+    },
+    {
+      "id": "H-s13",
+      "area": "内容直读",
+      "result": "INFO(疑似空壳)",
+      "detail": "[交互元素2个] ‹ 结果排名RANKING 导出"
+    },
+    {
+      "id": "H-s14",
+      "area": "内容直读",
+      "result": "INFO(疑似空壳)",
+      "detail": "[交互元素1个] ‹ 试剂库REAGENTS"
+    },
+    {
+      "id": "H-s15",
+      "area": "内容直读",
+      "result": "INFO(疑似空壳)",
+      "detail": "[交互元素0个] 我的PROFILE"
+    },
+    {
+      "id": "H2-01",
+      "area": "s07 tabs",
+      "result": "INFO",
+      "detail": "[]"
+    },
+    {
+      "id": "H2-02",
+      "area": "点击[结果]tab",
+      "result": "FAIL(内容无变化)",
+      "detail": "变化片段: ‹ 实验详情RUN 结果 EXP-03 · 重结晶纯化筛选96孔板 · 进行中 · 待纯化药品：粗品样品 A 64/96 孔已录入 66.7%94.2%当前最佳 · C788.5%平均纯化率 孔板预览TAP TO RECORD 123456789101112ABCDEFGH 进入孔板记录 分析孔板最"
+    },
+    {
+      "id": "H3-s01",
+      "area": "可达性截图",
+      "result": "s01",
+      "detail": ""
+    },
+    {
+      "id": "H3-s02",
+      "area": "可达性截图",
+      "result": "s02",
+      "detail": ""
+    },
+    {
+      "id": "H3-s07",
+      "area": "可达性截图",
+      "result": "s07",
+      "detail": ""
+    },
+    {
+      "id": "H3-s08",
+      "area": "可达性截图",
+      "result": "s08",
+      "detail": ""
+    },
+    {
+      "id": "H3-s09",
+      "area": "可达性截图",
+      "result": "s09",
+      "detail": ""
+    },
+    {
+      "id": "H3-s12",
+      "area": "可达性截图",
+      "result": "s12",
+      "detail": ""
+    }
+  ]
+}

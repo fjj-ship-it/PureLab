@@ -1,0 +1,8 @@
+# 构建中间产物（可由 build_local.sh 重新生成）
+purelab-apk/build/
+*.idsig
+
+# 系统与编辑器
+Thumbs.db
+.DS_Store
+.vscode/

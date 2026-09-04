@@ -1,0 +1,23 @@
+{
+  "log": [
+    {
+      "id": "B1-01",
+      "area": "进入工作台",
+      "result": "PASS",
+      "detail": "s02"
+    },
+    {
+      "id": "B1-02",
+      "area": "新建实验点击反馈",
+      "result": "{\"before\":\"s02\",\"after\":\"s02\",\"sheets\":5,\"inputs\":0}",
+      "detail": "点击=DIV.cta-row \"新建实验 →\" | after.sheets=[\"sheet-mask::\",\"sheet::\",\"sheet-handle::\",\"sheet-title::\",\"sheet-body::\"] | inputs=[]"
+    },
+    {
+      "id": "B2-01",
+      "area": "新建流程可达性",
+      "result": "FAIL",
+      "detail": "点击新建实验后既无屏幕切换也无表单出现 → 疑似死按钮"
+    }
+  ],
+  "pageErrors": []
+}

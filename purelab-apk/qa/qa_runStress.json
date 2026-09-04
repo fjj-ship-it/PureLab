@@ -1,0 +1,71 @@
+{
+  "log": [
+    {
+      "id": "S-01",
+      "name": "启动页三连点",
+      "ok": true,
+      "detail": "屏=s02"
+    },
+    {
+      "id": "S-02",
+      "name": "向导快速连点下一步",
+      "ok": true,
+      "detail": "屏=s06（预期 s06）"
+    },
+    {
+      "id": "S-03",
+      "name": "连续返回×6",
+      "ok": true,
+      "detail": "屏=s02（预期 s01/s02，无崩溃）"
+    },
+    {
+      "id": "S-04",
+      "name": "创建按钮三连击",
+      "ok": true,
+      "detail": "exp=EXP-04 wells=96 屏=s07"
+    },
+    {
+      "id": "S-05",
+      "name": "快速选/取消孔后应用",
+      "ok": true,
+      "detail": "chips=2 A=12 B=0 C=12"
+    },
+    {
+      "id": "S-06",
+      "name": "单孔保存三连击",
+      "ok": true,
+      "detail": "A5={\"o\":95,\"p\":95} ops=1"
+    },
+    {
+      "id": "S-07",
+      "name": "保存后立即返回再进入",
+      "ok": true,
+      "detail": "{\"out\":95,\"p\":95}"
+    },
+    {
+      "id": "S-08",
+      "name": "连续批量不串行",
+      "ok": true,
+      "detail": "A1=80% B1=90% C1=70%"
+    },
+    {
+      "id": "S-09",
+      "name": "s07↔s08快速来回×5后返回",
+      "ok": true,
+      "detail": "终屏=s07 回到s02需1次返回"
+    },
+    {
+      "id": "S-10",
+      "name": "快速改数据+reload持久化",
+      "ok": true,
+      "detail": "B3.purity=88.8"
+    },
+    {
+      "id": "S-11",
+      "name": "全程无页面JS异常",
+      "ok": true,
+      "detail": "clean"
+    }
+  ],
+  "pageErrors": []
+}

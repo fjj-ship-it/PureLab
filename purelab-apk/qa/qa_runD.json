@@ -1,0 +1,76 @@
+{
+  "log": [
+    {
+      "id": "D-T1a",
+      "area": "C7 编辑模式",
+      "result": "编辑入口=DIV.nav-side \"编辑\" 输入框=[]",
+      "detail": ""
+    },
+    {
+      "id": "D-T3a",
+      "area": "s08入口",
+      "result": "点击编辑数据",
+      "detail": "屏=s08"
+    },
+    {
+      "id": "D-T3b",
+      "area": "详情结果tab",
+      "result": "INFO",
+      "detail": "‹ 实验详情RUN 结果 EXP-03 · 重结晶纯化筛选96孔板 · 进行中 · 待纯化药品：粗品样品 A 64/96 孔已录入 66.7%94.2%当前最佳 · C788.5%平均纯化率 孔板预览TAP TO RECORD 123456789101112ABCDEFGH 进入孔板记录 分析孔板最佳条件"
+    },
+    {
+      "id": "D-T4",
+      "area": "D4 编辑",
+      "result": "FAIL",
+      "detail": "{\"err\":\"cannot open D4 → s02\"}"
+    },
+    {
+      "id": "D-T6",
+      "area": "A8 编辑",
+      "result": "FAIL",
+      "detail": "{\"err\":\"cannot open A8 → s02\"}"
+    },
+    {
+      "id": "D-T7",
+      "area": "返回首页再进(数据保留)",
+      "result": "PASS",
+      "detail": "回=s02 再进内容=‹ 孔板记录WELL RECORD 批量 123456789101112ABCDEFGH 组合A · 乙醇 : 水 = 3 : 1组合B · 甲醇 : 水 = 3 : 1组合C · 丙酮 : 水 = 3 : 1组合D · 乙醇 : 丙酮 : 水 = 2 : 1 : 1组合E · 异丙醇 : 水 = "
+    },
+    {
+      "id": "D-T8",
+      "area": "关闭重开APP(数据保留)",
+      "result": "INFO",
+      "detail": "reload后=‹ 孔板记录WELL RECORD 批量 123456789101112ABCDEFGH 组合A · 乙醇 : 水 = 3 : 1组合B · 甲醇 : 水 = 3 : 1组合C · 丙酮 : 水 = 3 : 1组合D · 乙醇 : 丙酮 : 水 = 2 : 1 : 1组合E · 异丙醇 : 水 = "
+    },
+    {
+      "id": "D-T9",
+      "area": "C7跨页一致",
+      "result": "INFO",
+      "detail": "s10: 产出=94.2 纯化率=94.2%（与s08/结果页对照见截图）"
+    },
+    {
+      "id": "B5-T1a",
+      "area": "s08批量按钮(条件批量?)",
+      "result": "点击=DIV.nav-side \"批量\" sheets=[\"sheet-mask::\",\"sheet::\",\"sheet-handle::\",\"sheet-title::\",\"sheet-body::\"]",
+      "detail": ""
+    },
+    {
+      "id": "B5-T5a",
+      "area": "批量录入入口",
+      "result": "未找到\"批量录入\"",
+      "detail": ""
+    },
+    {
+      "id": "B5-T5b",
+      "area": "批量录入页盘点",
+      "result": "INFO",
+      "detail": "‹ 实验详情RUN 结果 EXP-03 · 重结晶纯化筛选96孔板 · 进行中 · 待纯化药品：粗品样品 A 64/96 孔已录入 66.7%94.2%当前最佳 · C788.5%平均纯化率 孔板预览TAP TO RECORD 123456789101112ABCDEFGH 进入孔板记录 分析孔板最佳条件"
+    },
+    {
+      "id": "B5-T5c",
+      "area": "批量录入输入框",
+      "result": "INFO",
+      "detail": "[]"
+    }
+  ]
+}

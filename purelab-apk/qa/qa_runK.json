@@ -1,0 +1,175 @@
+{
+  "log": [
+    {
+      "id": "K-01",
+      "area": "[修复]s02[我的]→s15",
+      "result": "→ 屏=s15",
+      "detail": ""
+    },
+    {
+      "id": "K-02",
+      "area": "s15 内容",
+      "result": "‹ 我的PROFILE LLabExplorer专注实验操作 · 数据本地留存 · 不做自动推荐5试剂组合5试剂条目94.2%EXP-03 最佳我的实验›试剂库›数据备份JSON›设置重置演示数据›关于 PureLabv1.0›",
+      "detail": ""
+    },
+    {
+      "id": "K-03",
+      "area": "[验证]s15[试剂库]→s14",
+      "result": "→ 屏=s14",
+      "detail": ""
+    },
+    {
+      "id": "K-04",
+      "area": "s14 试剂库内容",
+      "result": "‹ 试剂库REAGENTS 乙醇CAS 64-17-5EtOH甲醇CAS 67-56-1MeOH丙酮CAS 67-64-1Acetone水CAS 7732-18-5H₂O异丙醇CAS 67-63-0IPA＋ 添加试剂",
+      "detail": ""
+    },
+    {
+      "id": "K-05",
+      "area": "进s03",
+      "result": "s03",
+      "detail": ""
+    },
+    {
+      "id": "K-06",
+      "area": "[修复]空名称下一步",
+      "result": "屏=s04 toast=\"null\"",
+      "detail": ""
+    },
+    {
+      "id": "K-07",
+      "area": "s03→s04",
+      "result": "s05",
+      "detail": ""
+    },
+    {
+      "id": "K-08",
+      "area": "[验证]s04新建组合",
+      "result": "sheet 无输入框（功能不变，记 N/A）",
+      "detail": ""
+    },
+    {
+      "id": "K-09",
+      "area": "s04→s05",
+      "result": "s06",
+      "detail": ""
+    },
+    {
+      "id": "K-10",
+      "area": "s05→s06",
+      "result": "s06",
+      "detail": ""
+    },
+    {
+      "id": "K-10b",
+      "area": "[修复]空名称创建被拦截",
+      "result": "屏=s03 toast=\"请填写实验名称\"（预期回 s03）",
+      "detail": ""
+    },
+    {
+      "id": "K-10c",
+      "area": "重走向导到s06",
+      "result": "s06",
+      "detail": ""
+    },
+    {
+      "id": "K-11",
+      "area": "[修复]创建真实新实验",
+      "result": "屏=s07 db={\"id\":\"EXP-04\",\"drug\":\"对乙酰氨基酚粗品\",\"done\":0,\"best\":\"—\",\"dose\":100}",
+      "detail": ""
+    },
+    {
+      "id": "K-12",
+      "area": "[修复]负数拒绝",
+      "result": "toast=\"产出量不能为负数\"（预期拦截）",
+      "detail": ""
+    },
+    {
+      "id": "K-13",
+      "area": "[设计确认]产出0为合法数据",
+      "result": "屏=s08 toast=\"已应用至 12 孔\"（0%纯度合法，成功后返回s08）",
+      "detail": ""
+    },
+    {
+      "id": "K-14",
+      "area": "[修复]产出>投入拒绝",
+      "result": "屏=s09 toast=\"产出量大于投入量，请核对\"（预期拦截留s09）",
+      "detail": ""
+    },
+    {
+      "id": "K-15a",
+      "area": "[修复]仅填充未完成跳过已完成",
+      "result": "toast=\"所选 12 孔均已完成，被「仅填充未完成」跳过\"（预期跳过提示，留s09）",
+      "detail": ""
+    },
+    {
+      "id": "K-15",
+      "area": "[修复]批量覆盖应用12孔",
+      "result": "done=12 toast=\"已应用至 12 孔\"",
+      "detail": ""
+    },
+    {
+      "id": "K-16",
+      "area": "s08→s07详情刷新",
+      "result": "‹ 实验详情RUN 结果 EXP-04 · 溶解度筛选-0496孔板 · 进行中 · 待纯化药品：对乙酰氨基酚粗品 12/96 孔已录入 12.5%88.0%当",
+      "detail": ""
+    },
+    {
+      "id": "K-17a",
+      "area": "s07 mini板点B3→s08（设计行为）",
+      "result": "s08",
+      "detail": ""
+    },
+    {
+      "id": "K-17",
+      "area": "s08全板点B3→s10",
+      "result": "s10",
+      "detail": ""
+    },
+    {
+      "id": "K-18",
+      "area": "[修复]逐孔投入量覆盖",
+      "result": "B3={\"done\":true,\"v\":\"200/190=95%\"}（200/190=95.0% 预期）",
+      "detail": ""
+    },
+    {
+      "id": "K-19",
+      "area": "[修复]清空=清除数据",
+      "result": "B3={\"done\":false}（预期 done:false）",
+      "detail": ""
+    },
+    {
+      "id": "K-20",
+      "area": "[修复]最佳动态计算",
+      "result": "best=B3@90%（预期 B3@90%）",
+      "detail": ""
+    },
+    {
+      "id": "K-21",
+      "area": "s12 最佳条件",
+      "result": "屏=s12 内容=‹ 最佳条件KEY CONDITION B组合B甲醇 : 水 = 3 : 190.0%最佳孔位B3投入量200.0 mg产出量180.0 mg纯化率90.0%收藏后，新建实验时可在「下一轮条件」中由你主动选用该条件；应用不做任何自动推荐。收藏此条件 →查看完整排名",
+      "detail": ""
+    },
+    {
+      "id": "K-22",
+      "area": "收藏反馈",
+      "result": "toast=\"组合B 已收藏 · 可用于下一轮实验\"",
+      "detail": ""
+    },
+    {
+      "id": "K-23",
+      "area": "s12→s13",
+      "result": "屏=s13 首行=‹ 结果排名RANKING 导出 全部组合组合A组合B组合C组合D组合E1B3组合B90.0%2A1组合A88.0%3A2组合A88.0%4A3组合A88.0%5A4组合A88.0",
+      "detail": ""
+    },
+    {
+      "id": "K-24",
+      "area": "reload持久化",
+      "result": "db={\"id\":\"EXP-04\",\"drug\":\"对乙酰氨基酚粗品\",\"done\":13,\"best\":\"B3@90%\",\"dose\":100}",
+      "detail": ""
+    }
+  ],
+  "pageErrors": [
+    "console: Failed to load resource: the server responded with a status of 404 (File not found)"
+  ]
+}

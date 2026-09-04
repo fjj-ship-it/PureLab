@@ -1,0 +1,758 @@
+[
+  {
+    "screen": "s02",
+    "el": "button.nav-text \"我的\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "26x21"
+  },
+  {
+    "screen": "s02",
+    "el": "div.card.exp-card \"EXP-03重结晶纯化筛选进行中96孔板64/9\"",
+    "verdict": "OK",
+    "note": "350x120"
+  },
+  {
+    "screen": "s02",
+    "el": "div.card.arch-row \"EXP-02溶解度粗测96孔板 · 2024.0\"",
+    "verdict": "OK",
+    "note": "350x64"
+  },
+  {
+    "screen": "s02",
+    "el": "div.card.arch-row \"EXP-01溶剂体系预筛48孔板 · 2024.\"",
+    "verdict": "NO-FEEDBACK",
+    "note": "350x64"
+  },
+  {
+    "screen": "s02",
+    "el": "button.cta-line \"新建实验 →\"",
+    "verdict": "OK",
+    "note": "94x33"
+  },
+  {
+    "screen": "s03",
+    "el": "button.nav-back \"‹\"",
+    "verdict": "OK",
+    "note": "34x34"
+  },
+  {
+    "screen": "s03",
+    "el": "button.nav-text \"跳过\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "26x21"
+  },
+  {
+    "screen": "s03",
+    "el": "p.hint \"96 孔板固定为 8×12（A–H 行 × 1–\"",
+    "verdict": "OK",
+    "note": "346x37"
+  },
+  {
+    "screen": "s03",
+    "el": "button.cta-line \"下一步 →\"",
+    "verdict": "OK",
+    "note": "79x33"
+  },
+  {
+    "screen": "s04",
+    "el": "div.launch \"PureLab\n      高通量纯化实验助手\n\"",
+    "verdict": "OK",
+    "note": "390x844"
+  },
+  {
+    "screen": "s05",
+    "el": "div.launch \"PureLab\n      高通量纯化实验助手\n\"",
+    "verdict": "OK",
+    "note": "390x844"
+  },
+  {
+    "screen": "s06",
+    "el": "div.launch \"PureLab\n      高通量纯化实验助手\n\"",
+    "verdict": "OK",
+    "note": "390x844"
+  },
+  {
+    "screen": "s07",
+    "el": "button.nav-back \"‹\"",
+    "verdict": "OK",
+    "note": "34x34"
+  },
+  {
+    "screen": "s07",
+    "el": "button.nav-text \"结果\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "26x21"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "div.well.empty \"\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "23x23"
+  },
+  {
+    "screen": "s07",
+    "el": "p.hint \"点击孔位可查看详情与录入数据。\"",
+    "verdict": "OK ⚠小点击区",
+    "note": "346x19"
+  },
+  {
+    "screen": "s07",
+    "el": "button.text-act \"进入孔板记录\"",
+    "verdict": "OK",
+    "note": "78x23"
+  },
+  {
+    "screen": "s07",
+    "el": "button.text-act \"分析孔板最佳条件\"",
+    "verdict": "OK",
+    "note": "104x23"
+  },
+  {
+    "screen": "s08",
+    "el": "div.launch \"PureLab\n      高通量纯化实验助手\n\"",
+    "verdict": "OK",
+    "note": "390x844"
+  },
+  {
+    "screen": "s09",
+    "el": "div.launch \"PureLab\n      高通量纯化实验助手\n\"",
+    "verdict": "OK",
+    "note": "390x844"
+  },
+  {
+    "screen": "s08b",
+    "el": "div.launch \"PureLab\n      高通量纯化实验助手\n\"",
+    "verdict": "OK",
+    "note": "390x844"
+  },
+  {
+    "screen": "s11",
+    "el": "div.launch \"PureLab\n      高通量纯化实验助手\n\"",
+    "verdict": "OK",
+    "note": "390x844"
+  },
+  {
+    "screen": "s12",
+    "el": "div.launch \"PureLab\n      高通量纯化实验助手\n\"",
+    "verdict": "OK",
+    "note": "390x844"
+  },
+  {
+    "screen": "s13",
+    "el": "div.launch \"PureLab\n      高通量纯化实验助手\n\"",
+    "verdict": "OK",
+    "note": "390x844"
+  },
+  {
+    "screen": "s15",
+    "el": "button.nav-back \"‹\"",
+    "verdict": "OK",
+    "note": "34x34"
+  },
+  {
+    "screen": "s15",
+    "el": "div.menu-row \"我的实验›\"",
+    "verdict": "OK",
+    "note": "350x50"
+  },
+  {
+    "screen": "s15",
+    "el": "div.menu-row \"试剂库›\"",
+    "verdict": "OK",
+    "note": "350x50"
+  },
+  {
+    "screen": "s15",
+    "el": "div#m-backup.menu-row \"数据备份JSON›\"",
+    "verdict": "OK",
+    "note": "350x50"
+  },
+  {
+    "screen": "s15",
+    "el": "div#m-reset.menu-row \"设置重置演示数据›\"",
+    "verdict": "OK",
+    "note": "350x50"
+  },
+  {
+    "screen": "s15",
+    "el": "div#m-about.menu-row \"关于 PureLabv1.0›\"",
+    "verdict": "OK",
+    "note": "350x50"
+  },
+  {
+    "screen": "s14",
+    "el": "div.launch \"PureLab\n      高通量纯化实验助手\n\"",
+    "verdict": "OK",
+    "note": "390x844"
+  }
+]

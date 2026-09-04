@@ -1,0 +1,113 @@
+{
+  "log": [
+    {
+      "id": "F-01",
+      "name": "s01 植物插画",
+      "ok": true,
+      "detail": "SVG OK"
+    },
+    {
+      "id": "F-02",
+      "name": "s02 深绿主卡+缩略图",
+      "ok": true,
+      "detail": "dark=true thumbs=2"
+    },
+    {
+      "id": "F-03",
+      "name": "s03 stepper",
+      "ok": true,
+      "detail": "\"1基础信息 2条件设置 3确认\""
+    },
+    {
+      "id": "F-04",
+      "name": "s04 stepper",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "F-05",
+      "name": "s05 stepper",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "F-06",
+      "name": "s06 stepper",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "F-07",
+      "name": "s06 孔板预览+图例",
+      "ok": true,
+      "detail": "wells=96 legendLen=128"
+    },
+    {
+      "id": "F-08",
+      "name": "[P0]创建三连击只创建一次",
+      "ok": true,
+      "detail": "exp=EXP-04"
+    },
+    {
+      "id": "F-09",
+      "name": "[P0]创建后返回回工作台",
+      "ok": true,
+      "detail": "屏=s02"
+    },
+    {
+      "id": "F-10",
+      "name": "工作台卡片→s07",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "F-11",
+      "name": "s07 迷你板点B3直达s10",
+      "ok": true,
+      "detail": "屏=s10"
+    },
+    {
+      "id": "F-12",
+      "name": "新建组合带配方输入",
+      "ok": true,
+      "detail": "custom=[{\"id\":\"F\",\"name\":\"组合F\",\"recipe\":\"乙醇 : 乙酸乙酯 = 1 : 2\",\"color\":\"#C0A381\"}]"
+    },
+    {
+      "id": "F-13",
+      "name": "自定义组合详情+可删除",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "F-14",
+      "name": "删除自定义组合",
+      "ok": true,
+      "detail": "custom=[]"
+    },
+    {
+      "id": "F-15",
+      "name": "s11 深绿hero",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "F-16",
+      "name": "s14 试剂卡点详情",
+      "ok": true,
+      "detail": "乙醇 · 试剂详情"
+    },
+    {
+      "id": "F-17",
+      "name": "s15 帮助与反馈",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "F-18",
+      "name": "全程无 JS 异常",
+      "ok": true,
+      "detail": "clean"
+    }
+  ],
+  "pageErrors": []
+}

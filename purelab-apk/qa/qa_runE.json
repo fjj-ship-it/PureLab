@@ -1,0 +1,70 @@
+{
+  "log": [
+    {
+      "id": "E-00",
+      "area": "路径",
+      "result": "INFO",
+      "detail": "屏=s08"
+    },
+    {
+      "id": "E-01",
+      "area": "s08[批量]",
+      "result": "弹sheet",
+      "detail": "{\"cls\":\"sheet\",\"title\":\"\",\"bodyLen\":0,\"bodyText\":\"\",\"inputs\":0}"
+    },
+    {
+      "id": "E-01b",
+      "area": "关闭sheet",
+      "result": "s08",
+      "detail": "{\"cls\":\"sheet\",\"title\":\"\",\"bodyLen\":0,\"bodyText\":\"\",\"inputs\":0}"
+    },
+    {
+      "id": "E-02",
+      "area": "s08[批量录入]",
+      "result": "点击",
+      "detail": "屏=s09 sheet={\"cls\":\"sheet\",\"title\":\"\",\"bodyLen\":0,\"bodyText\":\"\",\"inputs\":0}"
+    },
+    {
+      "id": "E-02b",
+      "area": "s09盘点",
+      "result": "INFO",
+      "detail": "‹ 批量录入产出量BATCH ENTRY 按区域录入 按组合录入 选择区域（行）未选择 ABCDEFGH 投入量（mg）适用于所选全部孔位 产出量（mg） 仅填充未完成孔位 应用到所选孔位 →"
+    },
+    {
+      "id": "E-02c",
+      "area": "s09输入框",
+      "result": "INFO",
+      "detail": "[{\"ph\":\"\",\"val\":\"100.0\"},{\"ph\":\"输入产出量\",\"val\":\"\"},{\"ph\":\"\",\"val\":\"on\"}]"
+    },
+    {
+      "id": "E-03",
+      "area": "s08[编辑数据]",
+      "result": "无反应",
+      "detail": ""
+    },
+    {
+      "id": "E-04",
+      "area": "打开C7",
+      "result": "屏=s09",
+      "detail": ""
+    },
+    {
+      "id": "E-04b",
+      "area": "s10[编辑]",
+      "result": "无反应",
+      "detail": ""
+    },
+    {
+      "id": "E-05",
+      "area": "s07[分析孔板最佳条件]",
+      "result": "无反应",
+      "detail": ""
+    },
+    {
+      "id": "E-06",
+      "area": "s02[新建实验]",
+      "result": "无反应",
+      "detail": ""
+    }
+  ]
+}

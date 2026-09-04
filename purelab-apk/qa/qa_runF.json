@@ -1,0 +1,155 @@
+{
+  "log": [
+    {
+      "id": "F-00",
+      "area": "路径",
+      "result": "s08",
+      "detail": ""
+    },
+    {
+      "id": "F-01",
+      "area": "录入前孔板统计",
+      "result": "INFO",
+      "detail": "{\"total\":96,\"byCls\":{\"plain\":63,\"empty\":32,\"sel best\":1}}"
+    },
+    {
+      "id": "F-02",
+      "area": "进入s09",
+      "result": "PASS",
+      "detail": "屏=s09"
+    },
+    {
+      "id": "F-03",
+      "area": "选择A行",
+      "result": "BUTTON.chip \"A\"",
+      "detail": ""
+    },
+    {
+      "id": "F-04",
+      "area": "输入框盘点",
+      "result": "INFO",
+      "detail": "[{\"ph\":\"number\",\"val\":\"100.0\"},{\"ph\":\"输入产出量\",\"val\":\"\"},{\"ph\":\"checkbox\",\"val\":\"on\"}]"
+    },
+    {
+      "id": "F-05",
+      "area": "应用到所选孔位",
+      "result": "点击=DIV.cta-row \"应用到所选孔位 →\" toast=\"\"",
+      "detail": ""
+    },
+    {
+      "id": "F-06",
+      "area": "回s08",
+      "result": "屏=s08",
+      "detail": ""
+    },
+    {
+      "id": "F-07",
+      "area": "录入后孔板统计",
+      "result": "FAIL(无变化)",
+      "detail": "before={\"total\":96,\"byCls\":{\"plain\":63,\"empty\":32,\"sel best\":1}} after={\"total\":96,\"byCls\":{\"plain\":63,\"empty\":32,\"sel best\":1}}"
+    },
+    {
+      "id": "F-08",
+      "area": "进度数字",
+      "result": "INFO",
+      "detail": "s08文本截取: ‹ 孔板记录WELL RECORD 批量 123456789101112ABCDEFGH 组合A · 乙醇 : 水 = 3 : 1组合B · 甲醇 : 水 = 3 : 1组合C · 丙酮 : 水 = 3 : 1组合D · 乙醇 : 丙酮 :"
+    },
+    {
+      "id": "F2-00",
+      "area": "重进s09",
+      "result": "s09",
+      "detail": ""
+    },
+    {
+      "id": "F2-零值",
+      "area": "产出量=\"0\"",
+      "result": "INFO",
+      "detail": "应用按钮=有 toast=\"\""
+    },
+    {
+      "id": "F2-负数",
+      "area": "产出量=\"-5\"",
+      "result": "INFO",
+      "detail": "应用按钮=有 toast=\"\""
+    },
+    {
+      "id": "F2-超大数",
+      "area": "产出量=\"999999\"",
+      "result": "INFO",
+      "detail": "应用按钮=有 toast=\"\""
+    },
+    {
+      "id": "F2-文字",
+      "area": "产出量=\"abc\"",
+      "result": "INFO",
+      "detail": "应用按钮=有 toast=\"\""
+    },
+    {
+      "id": "F2-异常单位",
+      "area": "产出量=\"5kg\"",
+      "result": "INFO",
+      "detail": "应用按钮=有 toast=\"\""
+    },
+    {
+      "id": "F2-小数",
+      "area": "产出量=\"88.55\"",
+      "result": "INFO",
+      "detail": "应用按钮=有 toast=\"\""
+    },
+    {
+      "id": "F3-00",
+      "area": "回s07",
+      "result": "s07",
+      "detail": ""
+    },
+    {
+      "id": "F3-01",
+      "area": "s07重测[分析孔板最佳条件]",
+      "result": "入口存在",
+      "detail": ""
+    },
+    {
+      "id": "F3-02",
+      "area": "点击分析孔板最佳条件",
+      "result": "屏=s12 文本=‹ 最佳条件KEY CONDITION C组合C丙酮 : 水 = 3 : 194.2%最佳孔位C7投入量100.0 mg产出量94.2 mg纯化率94.2%收藏后，新建实验时可在「下一轮条件」中由你主动选用该条件；应用不做任何自动推荐。收藏此条件 →查看完整排名",
+      "detail": ""
+    },
+    {
+      "id": "F3-03",
+      "area": "入口[结果]",
+      "result": "屏=s07 内容=‹ 实验详情RUN 结果 EXP-03 · 重结晶纯化筛选96孔板 · 进行中 · 待纯化药品：粗品样品 A 64/96 孔已录入 66.7%94.2%当前最佳 · C788.5%平均纯化率 孔板预览TAP TO RECORD 123456789101112ABCDEFGH 进入孔板记录 分析孔板最",
+      "detail": ""
+    },
+    {
+      "id": "F3-04",
+      "area": "s02入口[试剂库]",
+      "result": "点击 → s02",
+      "detail": "实验工作台WORKSPACE Good morning 今天也顺利完成实验 进行中的实验ONGOING EXP-03重结晶纯化筛选进行中96孔板64/96 孔已录入当前最佳 94.2%进度 66.7%继续实验 → 已归档实验ARCHIVE EXP-02溶解度粗测96孔板 · 2024.06 · 已完成最佳 92.1%EXP-01溶剂体系预筛48孔板 · 2024.05 · 已完成最佳 90.8% 新建实验 →"
+    },
+    {
+      "id": "F3-04",
+      "area": "s02入口[试剂]",
+      "result": "点击 → s02",
+      "detail": "实验工作台WORKSPACE Good morning 今天也顺利完成实验 进行中的实验ONGOING EXP-03重结晶纯化筛选进行中96孔板64/96 孔已录入当前最佳 94.2%进度 66.7%继续实验 → 已归档实验ARCHIVE EXP-02溶解度粗测96孔板 · 2024.06 · 已完成最佳 92.1%EXP-01溶剂体系预筛48孔板 · 2024.05 · 已完成最佳 90.8% 新建实验 →"
+    },
+    {
+      "id": "F3-04",
+      "area": "s02入口[我的]",
+      "result": "点击 → s02",
+      "detail": "实验工作台WORKSPACE Good morning 今天也顺利完成实验 进行中的实验ONGOING EXP-03重结晶纯化筛选进行中96孔板64/96 孔已录入当前最佳 94.2%进度 66.7%继续实验 → 已归档实验ARCHIVE EXP-02溶解度粗测96孔板 · 2024.06 · 已完成最佳 92.1%EXP-01溶剂体系预筛48孔板 · 2024.05 · 已完成最佳 90.8% 新建实验 →"
+    },
+    {
+      "id": "F3-05",
+      "area": "s15我的(内容)",
+      "result": "INFO",
+      "detail": "我的PROFILE"
+    },
+    {
+      "id": "F3-06",
+      "area": "s14试剂库(内容)",
+      "result": "INFO",
+      "detail": "‹ 试剂库REAGENTS"
+    }
+  ],
+  "pageErrors": []
+}
