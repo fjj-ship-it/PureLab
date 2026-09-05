@@ -48,43 +48,83 @@ function buildWells() {
   return wells;
 }
 
+/* 演示孔板：frac 为完成比例（0~1），确定性伪随机分布 */
+function demoWells(frac) {
+  var wells = {};
+  ROWS.forEach(function (row, r) {
+    for (var c = 1; c <= 12; c++) {
+      var coord = row + c, i = r * 12 + c;
+      var done = (i % 10) < Math.round(frac * 10);
+      var w = { coord: coord, row: row, col: c, combo: rowCombo(row), done: done };
+      if (done) {
+        var p = Math.min(90.0, +(BASE[rowCombo(row)] + jitter(i)).toFixed(1));
+        w.input = 100.0; w.output = +p.toFixed(1); w.purity = +p.toFixed(1);
+      }
+      wells[coord] = w;
+    }
+  });
+  return wells;
+}
+
 function freshDB() {
+  function dstr(offsetDays) {
+    var d = new Date(Date.now() - offsetDays * 86400000), p = function (x) { return (x < 10 ? '0' : '') + x; };
+    return d.getFullYear() + '.' + p(d.getMonth() + 1) + '.' + p(d.getDate());
+  }
+  var exp3 = { id: 'EXP-03', name: '重结晶纯化筛选', plate: '96孔板 · 进行中',
+    drug: '粗品样品 A', totalMass: 9600, dose: 100.0, comboCount: 5,
+    wells: buildWells(), created: dstr(6),
+    ops: {
+      C7: [
+        { t: dstr(2) + ' 10:15', d: '修改产出量 92.2 → 94.2 mg' },
+        { t: dstr(0) + ' 14:32', d: '批量录入产出量 94.2 mg' }
+      ]
+    } };
+  var exp2 = { id: 'EXP-02', name: '手性拆分初筛', plate: '96孔板 · 进行中',
+    drug: '粗品样品 B', totalMass: 4800, dose: 80.0, comboCount: 3,
+    wells: demoWells(0.5), ops: {}, created: dstr(3) };
+  var exp1 = { id: 'EXP-01', name: '溶剂体系摸索', plate: '96孔板 · 进行中',
+    drug: '粗品样品 C', totalMass: 3200, dose: 60.0, comboCount: 2,
+    wells: demoWells(0.2), ops: {}, created: dstr(1) };
   return {
-    exp: {
-      id: 'EXP-03', name: '重结晶纯化筛选', plate: '96孔板 · 进行中',
-      drug: '粗品样品 A', totalMass: 9600, dose: 100.0, comboCount: 5
-    },
-    wells: buildWells(),
+    exps: { 'EXP-01': exp1, 'EXP-02': exp2, 'EXP-03': exp3 },   /* 多实验：进行中实验池 */
+    curExp: 'EXP-03',                                            /* 当前激活实验 id */
     selected: {},                                  /* 已收藏条件 {组合id: true} */
     customCombos: [],                              /* 自定义组合（F–H） */
+    deletedCombos: [],
+    wizard: { sel: {}, assign: null },
     reagents: [
       { name: '乙醇', en: 'EtOH',     cas: '64-17-5' },
       { name: '甲醇', en: 'MeOH',     cas: '67-56-1' },
       { name: '丙酮', en: 'Acetone',  cas: '67-64-1' },
       { name: '水',   en: 'H₂O',      cas: '7732-18-5' },
       { name: '异丙醇', en: 'IPA',    cas: '67-63-0' }
-    ],
-    ops: (function () {
-      function dstr(offsetDays) {
-        var d = new Date(Date.now() - offsetDays * 86400000), p = function (x) { return (x < 10 ? '0' : '') + x; };
-        return d.getFullYear() + '.' + p(d.getMonth() + 1) + '.' + p(d.getDate());
-      }
-      return {
-        C7: [
-          { t: dstr(2) + ' 10:15', d: '修改产出量 92.2 → 94.2 mg' },
-          { t: dstr(0) + ' 14:32', d: '批量录入产出量 94.2 mg' }
-        ]
-      };
-    })()
+    ]
   };
+}
+
+/* 迁移与激活链接：DB.exp/DB.wells/DB.ops 始终指向 exps[curExp]（旧单实验数据自动并入） */
+function normalizeDB() {
+  if (!DB.exps || !Object.keys(DB.exps).length) {
+    var base = DB.exp || { id: 'EXP-03', name: '重结晶纯化筛选', plate: '96孔板 · 进行中',
+      drug: '粗品样品 A', totalMass: 9600, dose: 100.0, comboCount: 5 };
+    DB.exps = {};
+    DB.exps[base.id] = Object.assign({}, base, { wells: DB.wells || buildWells(), ops: DB.ops || {} });
+    DB.curExp = base.id;
+  }
+  if (!DB.curExp || !DB.exps[DB.curExp]) DB.curExp = Object.keys(DB.exps).sort().pop();
+  var e = DB.exps[DB.curExp];
+  DB.exp = e; DB.wells = e.wells; DB.ops = e.ops || (e.ops = {});
+  if (!DB.selected) DB.selected = {};
+  if (!DB.customCombos) DB.customCombos = [];
+  if (!DB.deletedCombos) DB.deletedCombos = [];
+  if (!DB.wizard) DB.wizard = { sel: {}, assign: null };
 }
 
 var DB;
 try { DB = JSON.parse(localStorage.getItem('purelab_db')) || freshDB(); }
 catch (e) { DB = freshDB(); }
-if (!DB.customCombos) DB.customCombos = [];     /* 自定义组合（F–H），旧数据迁移 */
-if (!DB.deletedCombos) DB.deletedCombos = [];   /* 已删除的预置组合 id，旧数据迁移 */
-if (!DB.wizard) DB.wizard = { sel: {}, assign: null };  /* 向导选择状态：勾选的组合 + 行分配 */
+normalizeDB();
 function save() { try { localStorage.setItem('purelab_db', JSON.stringify(DB)); } catch (e) {} }
 
 /* ---------------- 工具 ---------------- */
@@ -152,7 +192,7 @@ var stack = ['s01'];
 function show(id) {
   document.querySelectorAll('.screen').forEach(function (s) { s.classList.remove('active'); });
   $(id).classList.add('active');
-  var r = { s03: renderNew, s04: renderCombos, s05: renderAssign, s06: renderConfirm,
+  var r = { s02: renderHome, s03: renderNew, s04: renderCombos, s05: renderAssign, s06: renderConfirm,
             s07: renderRun, s08: renderRecord, s09: renderBatch, s10: renderWell,
             s11: renderResults, s12: renderBest, s13: renderRank,
             s14: renderReagents, s15: renderProfile };
@@ -245,19 +285,33 @@ function legendHTML(ids, repeatFrom) {
 var LEAF_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none">' +
   '<path d="M12 21c0-6 2-11 9-14-1 7-4 12-9 14z" fill="#536253"/>' +
   '<path d="M12 21C8 16 5 13 3 7c6 1 9 6 9 14z" fill="#2F3A31"/></svg>';
+function expStats(e) {
+  var n = 0, best = 0;
+  Object.keys(e.wells).forEach(function (k) {
+    var w = e.wells[k];
+    if (w.done) { n++; if (w.purity > best) best = w.purity; }
+  });
+  return { n: n, pct: n / 96 * 100, best: best };
+}
 function renderHome() {
-  var st = stats();
-  $('home-ongoing').innerHTML =
-    '<div class="card exp-card dark" data-go="s07">' +
-      '<div class="row1"><span class="exp-id">' + esc(DB.exp.id) + '</span>' +
-      '<span class="exp-name">' + esc(DB.exp.name) + '</span>' +
+  normalizeDB();
+  var ids = Object.keys(DB.exps).sort().reverse();           /* 最新实验在最前 */
+  ids.splice(ids.indexOf(DB.curExp), 1); ids.unshift(DB.curExp);   /* 激活实验恒排首位 */
+  var cards = ids.map(function (id) {
+    var e = DB.exps[id], s = expStats(e), cur = id === DB.curExp;
+    return '<div class="card exp-card dark' + (cur ? ' cur' : '') + '" data-expid="' + id + '"' + (cur ? ' data-go="s07"' : '') + '>' +
+      '<div class="row1"><span class="exp-id">' + esc(e.id) + '</span>' +
+      '<span class="exp-name">' + esc(e.name) + '</span>' +
       '<span class="tag run">进行中</span></div>' +
-      '<div class="exp-meta"><span>96孔板</span><span><b>' + st.n + '</b>/96 孔已录入</span>' +
-      '<span>当前最佳 <b>' + st.best.purity.toFixed(1) + '%</b></span></div>' +
-      '<div class="pbar"><i style="width:' + (st.n / 96 * 100).toFixed(1) + '%"></i></div>' +
-      '<div class="row-act"><span class="exp-best">进度 ' + (st.n / 96 * 100).toFixed(1) + '%</span>' +
-      '<span class="mini-act">继续实验 →</span></div>' +
+      '<div class="exp-meta"><span>96孔板</span><span><b>' + s.n + '</b>/96 孔已录入</span>' +
+      '<span>当前最佳 <b>' + s.best.toFixed(1) + '%</b></span></div>' +
+      '<div class="pbar"><i style="width:' + s.pct.toFixed(1) + '%"></i></div>' +
+      '<div class="row-act"><span class="exp-best">进度 ' + s.pct.toFixed(1) + '%</span>' +
+      '<span class="mini-act">' + (cur ? '继续实验 →' : '点击进入 →') + '</span></div>' +
     '</div>';
+  });
+  $('home-ongoing').innerHTML = '<div class="exp-carousel" id="exp-carousel">' + cards.join('') + '</div>';
+  initCarousel();
   $('home-archive').innerHTML =
     '<div class="card arch-row" data-toast="演示归档数据 · EXP-02 已完成"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
       '<div class="arch-name">溶解度粗测<div class="arch-sub">96孔板 · 2024.06 · 已完成</div></div>' +
@@ -266,6 +320,105 @@ function renderHome() {
       '<div class="arch-name">溶剂体系预筛<div class="arch-sub">48孔板 · 2024.05 · 已完成</div></div>' +
       '<span class="arch-best">最佳 90.8%</span></div>';
 }
+/* 进行中实验轮播：横向拖拽/滚轮 + 惯性 + 居中磁吸 + 距中心动态缩放/透明度/位移 */
+function initCarousel() {
+  var el = $('exp-carousel'); if (!el) return;
+  var cards = [].slice.call(el.children);
+  if (cards.length < 2) { layoutSoon(); return; }
+  function midX() { var r = el.getBoundingClientRect(); return r.left + r.width / 2; }
+  function centerOf(c) { return c.getBoundingClientRect().left - el.getBoundingClientRect().left + el.scrollLeft + c.offsetWidth / 2; }
+  function layout() {
+    var mid = midX(), max = el.clientWidth * 0.55 || 1;
+    cards.forEach(function (c) {
+      var r = c.getBoundingClientRect();
+      var a = Math.min(1, Math.abs(r.left + r.width / 2 - mid) / max);
+      c.style.transform = 'translateY(' + (a * 14).toFixed(1) + 'px) scale(' + (1 - 0.14 * a).toFixed(3) + ')';
+      c.style.opacity = (1 - 0.45 * a).toFixed(3);
+      c.style.zIndex = String(100 - Math.round(a * 100));
+    });
+  }
+  function layoutSoon() { requestAnimationFrame(layout); }
+  function nearest() {
+    var mid = midX(), best = null, bd = 1e9;
+    cards.forEach(function (c) {
+      var d = Math.abs(centerOf(c) - (el.scrollLeft + el.clientWidth / 2));
+      if (d < bd) { bd = d; best = c; }
+    });
+    return best;
+  }
+  function snapTo(c) { if (c) el.scrollTo({ left: centerOf(c) - el.clientWidth / 2, behavior: 'smooth' }); }
+  function snap() { snapTo(nearest()); }
+  /* 滚轮：纵向滚动量转横向 */
+  el.addEventListener('wheel', function (e) {
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); cancelAnimationFrame(raf); el.scrollLeft += e.deltaY; armIdleSnap(); }
+  }, { passive: false });
+  /* 拖拽 + 惯性 */
+  var down = false, moved = false, sx = 0, sl = 0, vel = 0, lastX = 0, lastT = 0, raf = null, idleT = null;
+  function onMove(e) {
+    if (!down) return;
+    var dx = e.clientX - sx;
+    if (Math.abs(dx) > 4) moved = true;
+    el.scrollLeft = sl - dx;
+    var now = Date.now(), dt = now - lastT;
+    if (dt > 0) { vel = 0.8 * vel + 0.2 * ((e.clientX - lastX) / dt); lastX = e.clientX; lastT = now; }
+  }
+  function glide() {
+    vel *= 0.94;
+    if (Math.abs(vel) < 0.02) { raf = null; snap(); return; }
+    el.scrollLeft -= vel * 16;
+    raf = requestAnimationFrame(glide);
+  }
+  function onUp() {
+    if (!down) return;
+    down = false;
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    document.removeEventListener('pointercancel', onUp);
+    setTimeout(function () { moved = false; }, 0);   /* 拖拽的连带 click 被抑制后立即复位 */
+    if (moved && Math.abs(vel) > 0.05) raf = requestAnimationFrame(glide);
+    else snap();
+  }
+  el.addEventListener('pointerdown', function (e) {
+    down = true; moved = false; sx = e.clientX; sl = el.scrollLeft;
+    lastX = e.clientX; lastT = Date.now(); vel = 0;
+    cancelAnimationFrame(raf); raf = null;
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onUp);
+  });
+  function armIdleSnap() {
+    clearTimeout(idleT);
+    idleT = setTimeout(function () { if (!down && !raf) snap(); }, 150);
+  }
+  el.addEventListener('scroll', function () { layoutSoon(); armIdleSnap(); }, { passive: true });
+  window.addEventListener('resize', layoutSoon);
+  /* 点击：侧卡先居中，居中卡进入实验 */
+  cards.forEach(function (c) {
+    c.addEventListener('click', function (e) {
+      if (moved) { e.stopPropagation(); moved = false; return; }
+      var r = c.getBoundingClientRect();
+      var centered = Math.abs(r.left + r.width / 2 - midX()) < c.offsetWidth * 0.3;
+      if (!centered) { e.stopPropagation(); snapTo(c); return; }
+      var id = c.getAttribute('data-expid');
+      if (DB.curExp !== id) {                                 /* 居中但非激活：切换并进入 */
+        e.stopPropagation();
+        DB.curExp = id; normalizeDB(); save();
+        renderHome(); go('s07');
+      }
+      /* 居中且已是激活卡：交给 data-go="s07" 正常导航 */
+    });
+  });
+  /* 初始：当前实验居中（不可见时等可见后再做） */
+  function initial() {
+    if (!el.clientWidth) { requestAnimationFrame(initial); return; }
+    requestAnimationFrame(function () {
+      var target = cards.filter(function (c) { return c.getAttribute('data-expid') === DB.curExp; })[0] || cards[0];
+      el.scrollLeft = centerOf(target) - el.clientWidth / 2;
+      layout();
+    });
+  }
+  initial();
+}
 document.body.addEventListener('click', function (e) {
   var t = e.target.closest('[data-toast]');
   if (t) toast(t.getAttribute('data-toast'));
@@ -273,7 +426,10 @@ document.body.addEventListener('click', function (e) {
 
 /* 03 新建实验 */
 function renderNew() {
-  $('f-name').value = DB.exp.name ? DB.exp.name + '-04' : '重结晶纯化筛选-04';
+  var mx = 3;
+  Object.keys(DB.exps).forEach(function (k) { var m = /^EXP-(\d+)$/.exec(k); if (m) mx = Math.max(mx, +m[1]); });
+  var suffix = '-' + ('0' + (mx + 1)).slice(-2);
+  $('f-name').value = DB.exp.name ? DB.exp.name + suffix : '重结晶纯化筛选' + suffix;
   $('f-mass').value = DB.exp.totalMass; $('f-dose').value = DB.exp.dose.toFixed(1);
 }
 
@@ -643,17 +799,23 @@ $('btn-create').addEventListener('click', function () {
   var sel = selIds();
   if (!sel.length) { toast('请先在条件设置中勾选试剂组合'); go('s04'); return; }
   createLock = true;
-  var seq = { 'EXP-03': 4, 'EXP-04': 5, 'EXP-05': 6, 'EXP-06': 7 }[DB.exp.id] || 4;
-  DB.exp = {
-    id: 'EXP-0' + seq, name: name, plate: '96孔板 · 进行中',
-    drug: ($('f-drug').value || '').trim() || '未命名样品',
-    totalMass: parseFloat($('f-mass').value) || 0, dose: dose, comboCount: sel.length
-  };
+  var mx = 3;
+  Object.keys(DB.exps).forEach(function (k) { var m = /^EXP-(\d+)$/.exec(k); if (m) mx = Math.max(mx, +m[1]); });
+  var nid = 'EXP-0' + (mx + 1);
+  var dCreate = new Date(), pd = function (x) { return (x < 10 ? '0' : '') + x; };
+  var created = dCreate.getFullYear() + '.' + pd(dCreate.getMonth() + 1) + '.' + pd(dCreate.getDate());
   var assign = DB.wizard.assign || {};
   var nAssign = Object.keys(assign).length;
-  DB.wells = freshEmptyWells(dose, assign);              /* 手动分配的孔位落到 96 孔 */
-  DB.ops = {}; DB.selWell = null;
-  save(); toast('实验 ' + DB.exp.id + ' 已创建 · ' + nAssign + ' 孔待录入');
+  var exp = {
+    id: nid, name: name, plate: '96孔板 · 进行中',
+    drug: ($('f-drug').value || '').trim() || '未命名样品',
+    totalMass: parseFloat($('f-mass').value) || 0, dose: dose, comboCount: sel.length,
+    wells: freshEmptyWells(dose, assign), ops: {}, created: created
+  };
+  DB.exps[exp.id] = exp;                                   /* 加入进行中实验池 */
+  DB.curExp = exp.id;
+  DB.exp = exp; DB.wells = exp.wells; DB.ops = exp.ops; DB.selWell = null;
+  save(); toast('实验 ' + nid + ' 已创建 · ' + nAssign + ' 孔待录入');
   stack = ['s01', 's02', 's07'];            /* 清空向导栈：返回键回工作台 */
   show('s07');
 });
@@ -1091,7 +1253,7 @@ function renderProfile() {
     '<div class="stat-row">' +
       '<div class="stat"><div class="v">' + DB.exp.comboCount + '</div><div class="k">试剂组合</div></div>' +
       '<div class="stat"><div class="v">' + DB.reagents.length + '</div><div class="k">试剂条目</div></div>' +
-      '<div class="stat"><div class="v warm">' + st.best.purity.toFixed(1) + '%</div><div class="k">EXP-03 最佳</div></div>' +
+      '<div class="stat"><div class="v warm">' + st.best.purity.toFixed(1) + '%</div><div class="k">' + esc(DB.exp.id) + ' 最佳</div></div>' +
     '</div>' +
     '<div class="menu">' +
       menuRow('我的实验', '', 's07') +
@@ -1120,11 +1282,11 @@ function renderProfile() {
     };
   };
   $('m-reset').onclick = function () {
-    openSheet('重置演示数据', '<p>将清除本机保存的全部实验数据，恢复为初始演示数据（EXP-03，64/96）。</p>' +
+    openSheet('重置演示数据', '<p>将清除本机保存的全部实验数据，恢复为初始演示数据（3 个进行中实验）。</p>' +
       '<div class="cta-row"><button class="cta-line" id="rs-go">确认重置 <i>→</i></button></div>');
     $('rs-go').onclick = function () {
       try { localStorage.removeItem('purelab_db'); } catch (e) {}
-      DB = freshDB(); save(); closeSheet(); show('s02'); toast('已重置');
+      DB = freshDB(); normalizeDB(); save(); closeSheet(); show('s02'); toast('已重置');
     };
   };
   $('m-about').onclick = function () {

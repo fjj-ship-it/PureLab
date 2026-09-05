@@ -62,6 +62,17 @@ input{font-family:inherit;color:var(--ink)}
 
 /* ---------------- 深绿主卡（s02 EXP 卡 / s11 hero，参考稿还原） ---------------- */
 .exp-card.dark{background:linear-gradient(135deg,#536253,#2F3A31);color:#F9F2EA}
+
+/* ---------------- 进行中实验轮播（横向拖拽/滚轮 · 惯性 · 居中磁吸） ---------------- */
+.exp-carousel{display:flex;gap:14px;overflow-x:auto;overscroll-behavior-x:contain;
+  padding:10px calc((100% - 76%) / 2) 18px;scrollbar-width:none;-ms-overflow-style:none;
+  touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
+.exp-carousel:active{cursor:grabbing}
+.exp-carousel::-webkit-scrollbar{display:none}
+.exp-carousel .exp-card{flex:0 0 auto;width:100%;margin:0;will-change:transform,opacity;
+  transition:box-shadow .3s ease;transform-origin:center center}
+.exp-carousel .exp-card.cur{box-shadow:0 12px 30px rgba(47,58,49,.32)}
+.exp-carousel .exp-card .exp-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .exp-card.dark .exp-id{background:rgba(249,242,234,.16);color:#F9F2EA;border-color:transparent}
 .exp-card.dark .tag.run{background:rgba(249,242,234,.18);color:#F9F2EA}
 .exp-card.dark .exp-meta{color:rgba(249,242,234,.78)}
