@@ -94,6 +94,46 @@ function ok(name, cond, extra) {
   const archTxt2 = await page.evaluate(() => document.getElementById('home-archive').textContent);
   ok('A6 归档删除后列表不再含该实验', !archTxt2.includes('归档闭环测试实验'));
 
+  /* A8 弹层开着时点「继续实验」：只应关闭弹层，不得跳页（z-index 修复回归） */
+  await page.evaluate(() => go('s02'));
+  await page.waitForTimeout(500);
+  await page.evaluate(() => {           // 进行中池若为空，补一个种子实验
+    if (!document.querySelector('.exp-card.cur')) {
+      var wells = {};
+      ['A','B','C','D','E','F','G','H'].forEach(function (r) { for (var c = 1; c <= 12; c++)
+        wells[r + c] = { coord: r + c, row: r, col: c, combo: 'A', done: false, input: 100, output: 0, purity: 0 }; });
+      DB.exps['EXP-08'] = { id: 'EXP-08', name: '弹层回归实验', plate: '96孔板 · 进行中',
+        drug: '样品 Q', totalMass: 9600, dose: 100, comboCount: 1, wells, ops: {}, created: '2026.09.06' };
+      DB.curExp = 'EXP-08'; normalizeDB(); save(); renderHome();
+    }
+  });
+  await page.waitForTimeout(500);
+  const btnPos = await page.evaluate(() => {
+    const b = document.querySelector('.exp-card.cur .mini-act');
+    if (!b) return null;
+    const r = b.getBoundingClientRect();
+    return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) };
+  });
+  if (btnPos) {
+    await page.evaluate(() => {
+      const rows = document.querySelectorAll('[data-archid]');
+      if (rows[0]) rows[0].click();
+    });
+    await page.waitForTimeout(400);
+    const hitWhileOpen = await page.evaluate(pt => {
+      const el = document.elementFromPoint(pt.x, pt.y);
+      return el ? (el.id || el.className) : 'none';
+    }, btnPos);
+    ok('A8-pre 弹层开着时按钮坐标命中遮罩', hitWhileOpen === 'sheet-mask', hitWhileOpen);
+    await page.mouse.click(btnPos.x, btnPos.y);
+    await page.waitForTimeout(500);
+    const navS07 = await page.evaluate(() => document.getElementById('s07').classList.contains('active'));
+    const sheetStill = await page.evaluate(() => document.getElementById('sheet').classList.contains('show'));
+    ok('A8 弹层开着点击不跳页、只关弹层', !navS07 && !sheetStill, 's07=' + navS07 + ' sheet=' + sheetStill);
+  } else {
+    ok('A8 弹层开着点击不跳页、只关弹层', false, '未找到继续实验按钮');
+  }
+
   ok('A7 pageErrors = 0', pageErrors.length === 0, pageErrors.join(' | '));
 
   console.log('==== ' + pass + '/' + (pass + fail) + ' PASS · pageErrors=' + pageErrors.length + ' ====');

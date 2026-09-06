@@ -425,7 +425,7 @@ function initCarousel() {
       var a = Math.min(1, Math.abs(r.left + r.width / 2 - mid) / max);
       c.style.transform = 'translateY(' + (a * 14).toFixed(1) + 'px) scale(' + (1 - 0.14 * a).toFixed(3) + ')';
       c.style.opacity = (1 - 0.45 * a).toFixed(3);
-      c.style.zIndex = String(100 - Math.round(a * 100));
+      c.style.zIndex = String(30 - Math.round(a * 10));   /* 最高 30，须低于弹层遮罩 z-40 */
     });
   }
   function layoutSoon() { requestAnimationFrame(layout); }
