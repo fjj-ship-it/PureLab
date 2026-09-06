@@ -4,7 +4,7 @@
    E1 pageErrors = 0 */
 const { chromium } = require('C:/Users/willion/.workbuddy/binaries/node/workspace/node_modules/playwright-core');
 const EXE = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-const URL = 'http://127.0.0.1:8899/purelab-apk/app/assets/www/index.html?v=23&t=' + Date.now();
+const URL = 'http://127.0.0.1:8899/purelab-apk/app/assets/www/index.html?v=24&t=' + Date.now();
 let pass = 0, fail = 0; const pageErrors = [];
 function ok(name, cond, extra) {
   if (cond) { pass++; console.log('[PASS] ' + name + (extra ? ' :: ' + extra : '')); }

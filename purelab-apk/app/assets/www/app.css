@@ -225,6 +225,11 @@ input{font-family:inherit;color:var(--ink)}
   box-shadow:0 3px 10px rgba(47,58,49,.16),inset 0 1px 0 rgba(255,255,255,.85)}
 .cta-glass i{font-style:normal;transition:transform .18s ease}
 .cta-glass:active i{transform:translateX(3px)}
+/* 首页「新建实验」：右下角悬浮液态玻璃（fixed 脱离文档流，原占位行自然塌陷） */
+#s02 .page{padding-bottom:calc(var(--safe-b) + 96px)}
+#s02 .cta-row{margin:0;height:0}
+#s02 .cta-glass{position:fixed;right:18px;bottom:calc(var(--safe-b) + 26px);z-index:12;
+  padding:14px 22px;margin:0}
 .ghost-add{display:block;width:100%;text-align:left;font-size:13px;font-weight:600;
   color:var(--ink2);padding:13px 16px;border:1px dashed var(--line);
   border-radius:var(--r-card);margin-top:2px}
