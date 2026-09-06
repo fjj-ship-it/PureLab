@@ -472,6 +472,19 @@ document.body.addEventListener('click', function (e) {
 });
 
 /* 03 新建实验 */
+/* s03 预计占用孔数量：总质量 ÷ 每孔投入量，实时联动 */
+function updateOccupancy() {
+  var el = $('f-occ'); if (!el) return;
+  var mass = parseFloat($('f-mass').value), dose = parseFloat($('f-dose').value);
+  el.style.color = '';
+  if (!(mass > 0) || !(dose > 0)) { el.textContent = '— / 96 · 请输入质量与投入量'; return; }
+  var need = Math.ceil(mass / dose);
+  if (need > 96) { el.style.color = '#A2554A'; el.textContent = '超出容量 · 需 ' + need + ' 孔（板上限 96）'; return; }
+  el.textContent = need + ' / 96 · 约 ' + Math.ceil(need / 12) + ' 行';
+}
+$('f-mass').addEventListener('input', updateOccupancy);
+$('f-dose').addEventListener('input', updateOccupancy);
+
 function renderNew() {
   var mx = 0;
   Object.keys(DB.exps).forEach(function (k) { var m = /^EXP-(\d+)$/.exec(k); if (m) mx = Math.max(mx, +m[1]); });
@@ -479,6 +492,7 @@ function renderNew() {
   $('f-name').value = (DB.exp && DB.exp.name) ? DB.exp.name + suffix : '重结晶纯化筛选' + suffix;
   $('f-mass').value = DB.exp ? DB.exp.totalMass : 9600;
   $('f-dose').value = DB.exp ? DB.exp.dose.toFixed(1) : '100.0';
+  updateOccupancy();
 }
 
 /* 04 条件设置 */

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>PureLab 高通量重结晶实验助手</title>
-<link rel="stylesheet" href="app.css?v=19c">
+<link rel="stylesheet" href="app.css?v=20">
 </head>
 <body>
 <div id="app">
@@ -80,7 +80,7 @@
         <label class="frow"><span class="flabel">待纯化药品</span><input id="f-drug" value="粗品样品 A"></label>
         <label class="frow"><span class="flabel">初始标样总质量（mg）</span><input id="f-mass" type="number" value="9600"></label>
         <label class="frow"><span class="flabel">每孔溶剂投入量（mg）</span><input id="f-dose" type="number" step="0.1" value="100.0"></label>
-        <div class="frow"><span class="flabel">预计占用孔数量</span><span class="fval">96 / 96 · 自动</span></div>
+        <div class="frow"><span class="flabel">预计占用孔数量</span><span class="fval" id="f-occ">96 / 96 · 自动</span></div>
       </div>
       <p class="hint">96 孔板固定为 8×12（A–H 行 × 1–12 列），每种组合占一整行（12 孔），可在下一步手动调整。</p>
       <div class="cta-row"><button class="cta-line" data-go="s04">下一步 <i>→</i></button></div>
@@ -286,6 +286,6 @@
 
   <div class="toast" id="toast"></div>
 </div>
-<script src="app.js?v=19c"></script>
+<script src="app.js?v=20"></script>
 </body>
 </html>
