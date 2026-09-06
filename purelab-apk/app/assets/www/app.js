@@ -105,20 +105,29 @@ function freshDB() {
 
 /* 迁移与激活链接：DB.exp/DB.wells/DB.ops 始终指向 exps[curExp]（旧单实验数据自动并入） */
 function normalizeDB() {
-  if (!DB.exps || !Object.keys(DB.exps).length) {
+  if (!DB.exps) {                                 /* 仅旧格式（无 exps 字段）才迁移；空池合法 */
     var base = DB.exp || { id: 'EXP-03', name: '重结晶纯化筛选', plate: '96孔板 · 进行中',
       drug: '粗品样品 A', totalMass: 9600, dose: 100.0, comboCount: 5 };
     DB.exps = {};
     DB.exps[base.id] = Object.assign({}, base, { wells: DB.wells || buildWells(), ops: DB.ops || {} });
     DB.curExp = base.id;
   }
-  if (!DB.curExp || !DB.exps[DB.curExp]) DB.curExp = Object.keys(DB.exps).sort().pop();
-  var e = DB.exps[DB.curExp];
-  DB.exp = e; DB.wells = e.wells; DB.ops = e.ops || (e.ops = {});
+  var ids = Object.keys(DB.exps);
+  if (ids.length) {
+    if (!DB.curExp || !DB.exps[DB.curExp]) DB.curExp = ids.sort().pop();
+    var e = DB.exps[DB.curExp];
+    DB.exp = e; DB.wells = e.wells; DB.ops = e.ops || (e.ops = {});
+  } else {                                        /* 全部删除后：空池 */
+    DB.curExp = null; DB.exp = null; DB.wells = {}; DB.ops = {};
+  }
   if (!DB.selected) DB.selected = {};
   if (!DB.customCombos) DB.customCombos = [];
   if (!DB.deletedCombos) DB.deletedCombos = [];
   if (!DB.wizard) DB.wizard = { sel: {}, assign: null };
+  if (!DB.archives) DB.archives = [               /* 归档实验（可删除） */
+    { id: 'ARC-1', name: '溶解度粗测', sub: '96孔板 · 2024.06 · 已完成', best: '92.1%' },
+    { id: 'ARC-2', name: '溶剂体系预筛', sub: '48孔板 · 2024.05 · 已完成', best: '90.8%' }
+  ];
 }
 
 var DB;
@@ -296,35 +305,68 @@ function expStats(e) {
 function renderHome() {
   normalizeDB();
   var ids = Object.keys(DB.exps).sort().reverse();           /* 最新实验在最前 */
-  ids.splice(ids.indexOf(DB.curExp), 1); ids.unshift(DB.curExp);   /* 激活实验恒排首位 */
-  var cards = ids.map(function (id) {
-    var e = DB.exps[id], s = expStats(e), cur = id === DB.curExp;
-    return '<div class="card exp-card dark' + (cur ? ' cur' : '') + '" data-expid="' + id + '"' + (cur ? ' data-go="s07"' : '') + '>' +
-      '<div class="row1"><span class="exp-id">' + esc(e.id) + '</span>' +
-      '<span class="exp-name">' + esc(e.name) + '</span>' +
-      '<span class="tag run">进行中</span></div>' +
-      '<div class="exp-meta"><span>96孔板</span><span><b>' + s.n + '</b>/96 孔已录入</span>' +
-      '<span>当前最佳 <b>' + s.best.toFixed(1) + '%</b></span></div>' +
-      '<div class="pbar"><i style="width:' + s.pct.toFixed(1) + '%"></i></div>' +
-      '<div class="row-act"><span class="exp-best">进度 ' + s.pct.toFixed(1) + '%</span>' +
-      '<span class="mini-act">' + (cur ? '继续实验 →' : '点击进入 →') + '</span></div>' +
-    '</div>';
+  if (DB.curExp && ids.indexOf(DB.curExp) > -1) {
+    ids.splice(ids.indexOf(DB.curExp), 1); ids.unshift(DB.curExp);   /* 激活实验恒排首位 */
+  }
+  if (!ids.length) {
+    $('home-ongoing').innerHTML = '<p class="hint" style="margin:6px 2px 14px">暂无进行中实验 · 点击下方「新建实验」开始</p>';
+  } else {
+    var cards = ids.map(function (id) {
+      var e = DB.exps[id], s = expStats(e), cur = id === DB.curExp;
+      return '<div class="card exp-card dark' + (cur ? ' cur' : '') + '" data-expid="' + id + '"' + (cur ? ' data-go="s07"' : '') + '>' +
+        '<div class="row1"><span class="exp-id">' + esc(e.id) + '</span>' +
+        '<span class="exp-name">' + esc(e.name) + '</span>' +
+        '<span class="tag run">进行中</span>' +
+        '<span class="exp-del" data-delexp="' + id + '">删除</span></div>' +
+        '<div class="exp-meta"><span>96孔板</span><span><b>' + s.n + '</b>/96 孔已录入</span>' +
+        '<span>当前最佳 <b>' + s.best.toFixed(1) + '%</b></span></div>' +
+        '<div class="pbar"><i style="width:' + s.pct.toFixed(1) + '%"></i></div>' +
+        '<div class="row-act"><span class="exp-best">进度 ' + s.pct.toFixed(1) + '%</span>' +
+        '<span class="mini-act">' + (cur ? '继续实验 →' : '点击进入 →') + '</span></div>' +
+      '</div>';
+    });
+    $('home-ongoing').innerHTML = '<div class="exp-carousel" id="exp-carousel">' + cards.join('') + '</div>';
+    initCarousel();
+  }
+  $('home-archive').innerHTML = DB.archives.length ? DB.archives.map(function (a) {
+    return '<div class="card arch-row"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
+      '<div class="arch-name">' + esc(a.name) + '<div class="arch-sub">' + esc(a.sub) + '</div></div>' +
+      '<span class="arch-best">最佳 ' + esc(a.best) + '</span>' +
+      '<span class="arch-del" data-delarch="' + a.id + '">删除</span></div>';
+  }).join('') : '<p class="hint" style="margin:6px 2px">暂无归档实验</p>';
+  $('home-archive').querySelectorAll('[data-delarch]').forEach(function (el) {
+    el.addEventListener('click', function () { askDeleteArch(el.getAttribute('data-delarch')); });
   });
-  $('home-ongoing').innerHTML = '<div class="exp-carousel" id="exp-carousel">' + cards.join('') + '</div>';
-  initCarousel();
-  $('home-archive').innerHTML =
-    '<div class="card arch-row" data-toast="演示归档数据 · EXP-02 已完成"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
-      '<div class="arch-name">溶解度粗测<div class="arch-sub">96孔板 · 2024.06 · 已完成</div></div>' +
-      '<span class="arch-best">最佳 92.1%</span></div>' +
-    '<div class="card arch-row" data-toast="演示归档数据 · EXP-01 已完成"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
-      '<div class="arch-name">溶剂体系预筛<div class="arch-sub">48孔板 · 2024.05 · 已完成</div></div>' +
-      '<span class="arch-best">最佳 90.8%</span></div>';
+}
+/* 删除进行中实验（确认弹层） */
+function askDeleteExp(id) {
+  var e = DB.exps[id]; if (!e) return;
+  openSheet('删除实验', '<p>将删除 <b>' + esc(e.id) + ' ' + esc(e.name) + '</b> 及其全部孔位数据，删除后不可恢复。</p>' +
+    '<div class="cta-row"><button class="cta-line" id="delexp-go">确认删除 <i>→</i></button></div>');
+  $('delexp-go').onclick = function () {
+    delete DB.exps[id];
+    if (DB.curExp === id) DB.curExp = Object.keys(DB.exps).sort().reverse()[0] || null;
+    normalizeDB(); save(); closeSheet();
+    renderHome(); toast('已删除 ' + id);
+  };
+}
+/* 删除归档实验（确认弹层） */
+function askDeleteArch(id) {
+  var a = null;
+  DB.archives.forEach(function (x) { if (x.id === id) a = x; });
+  if (!a) return;
+  openSheet('删除归档', '<p>将删除归档实验 <b>' + esc(a.name) + '</b>，删除后不可恢复。</p>' +
+    '<div class="cta-row"><button class="cta-line" id="delarch-go">确认删除 <i>→</i></button></div>');
+  $('delarch-go').onclick = function () {
+    DB.archives = DB.archives.filter(function (x) { return x.id !== id; });
+    save(); closeSheet();
+    renderHome(); toast('已删除归档');
+  };
 }
 /* 进行中实验轮播：横向拖拽/滚轮 + 惯性 + 居中磁吸 + 距中心动态缩放/透明度/位移 */
 function initCarousel() {
   var el = $('exp-carousel'); if (!el) return;
   var cards = [].slice.call(el.children);
-  if (cards.length < 2) { layoutSoon(); return; }
   function midX() { var r = el.getBoundingClientRect(); return r.left + r.width / 2; }
   function centerOf(c) { return c.getBoundingClientRect().left - el.getBoundingClientRect().left + el.scrollLeft + c.offsetWidth / 2; }
   function layout() {
@@ -392,22 +434,27 @@ function initCarousel() {
   }
   el.addEventListener('scroll', function () { layoutSoon(); armIdleSnap(); }, { passive: true });
   window.addEventListener('resize', layoutSoon);
-  /* 点击：侧卡先居中，居中卡进入实验 */
+  /* 删除与点击绑定：单卡也要生效（放在多卡交互逻辑之前） */
   cards.forEach(function (c) {
+    var del = c.querySelector('[data-delexp]');
+    if (del) del.addEventListener('click', function (e) {
+      e.stopPropagation();                                    /* 不触发卡片居中/导航 */
+      askDeleteExp(del.getAttribute('data-delexp'));
+    });
     c.addEventListener('click', function (e) {
       if (moved) { e.stopPropagation(); moved = false; return; }
-      var r = c.getBoundingClientRect();
-      var centered = Math.abs(r.left + r.width / 2 - midX()) < c.offsetWidth * 0.3;
+      var r0 = c.getBoundingClientRect();
+      var centered = Math.abs(r0.left + r0.width / 2 - midX()) < c.offsetWidth * 0.3;
       if (!centered) { e.stopPropagation(); snapTo(c); return; }
-      var id = c.getAttribute('data-expid');
-      if (DB.curExp !== id) {                                 /* 居中但非激活：切换并进入 */
+      var id0 = c.getAttribute('data-expid');
+      if (DB.curExp !== id0) {
         e.stopPropagation();
-        DB.curExp = id; normalizeDB(); save();
+        DB.curExp = id0; normalizeDB(); save();
         renderHome(); go('s07');
       }
-      /* 居中且已是激活卡：交给 data-go="s07" 正常导航 */
     });
   });
+  if (cards.length < 2) { layoutSoon(); return; }
   /* 初始：当前实验居中（不可见时等可见后再做） */
   function initial() {
     if (!el.clientWidth) { requestAnimationFrame(initial); return; }
@@ -426,11 +473,12 @@ document.body.addEventListener('click', function (e) {
 
 /* 03 新建实验 */
 function renderNew() {
-  var mx = 3;
+  var mx = 0;
   Object.keys(DB.exps).forEach(function (k) { var m = /^EXP-(\d+)$/.exec(k); if (m) mx = Math.max(mx, +m[1]); });
   var suffix = '-' + ('0' + (mx + 1)).slice(-2);
-  $('f-name').value = DB.exp.name ? DB.exp.name + suffix : '重结晶纯化筛选' + suffix;
-  $('f-mass').value = DB.exp.totalMass; $('f-dose').value = DB.exp.dose.toFixed(1);
+  $('f-name').value = (DB.exp && DB.exp.name) ? DB.exp.name + suffix : '重结晶纯化筛选' + suffix;
+  $('f-mass').value = DB.exp ? DB.exp.totalMass : 9600;
+  $('f-dose').value = DB.exp ? DB.exp.dose.toFixed(1) : '100.0';
 }
 
 /* 04 条件设置 */
@@ -799,7 +847,7 @@ $('btn-create').addEventListener('click', function () {
   var sel = selIds();
   if (!sel.length) { toast('请先在条件设置中勾选试剂组合'); go('s04'); return; }
   createLock = true;
-  var mx = 3;
+  var mx = 0;
   Object.keys(DB.exps).forEach(function (k) { var m = /^EXP-(\d+)$/.exec(k); if (m) mx = Math.max(mx, +m[1]); });
   var nid = 'EXP-0' + (mx + 1);
   var dCreate = new Date(), pd = function (x) { return (x < 10 ? '0' : '') + x; };

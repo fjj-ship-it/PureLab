@@ -73,6 +73,10 @@ input{font-family:inherit;color:var(--ink)}
   transition:box-shadow .3s ease;transform-origin:center center}
 .exp-carousel .exp-card.cur{box-shadow:0 12px 30px rgba(47,58,49,.32)}
 .exp-carousel .exp-card .exp-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exp-del,.arch-del{font-size:11px;font-weight:600;letter-spacing:.04em;
+  padding:2px 2px;border-bottom:1px solid currentColor;opacity:.75;white-space:nowrap;flex:none}
+.exp-del:active,.arch-del:active{opacity:1}
+.arch-del{color:#A2554A;margin-left:8px}
 .exp-card.dark .exp-id{background:rgba(249,242,234,.16);color:#F9F2EA;border-color:transparent}
 .exp-card.dark .tag.run{background:rgba(249,242,234,.18);color:#F9F2EA}
 .exp-card.dark .exp-meta{color:rgba(249,242,234,.78)}
