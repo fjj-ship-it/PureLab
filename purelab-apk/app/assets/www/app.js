@@ -124,9 +124,11 @@ function normalizeDB() {
   if (!DB.customCombos) DB.customCombos = [];
   if (!DB.deletedCombos) DB.deletedCombos = [];
   if (!DB.wizard) DB.wizard = { sel: {}, assign: null };
-  if (!DB.archives) DB.archives = [               /* 归档实验（可删除） */
-    { id: 'ARC-1', name: '溶解度粗测', sub: '96孔板 · 2024.06 · 已完成', best: '92.1%' },
-    { id: 'ARC-2', name: '溶剂体系预筛', sub: '48孔板 · 2024.05 · 已完成', best: '90.8%' }
+  if (!DB.archives) DB.archives = [               /* 归档实验（可删除，点击行可看详情） */
+    { id: 'ARC-1', name: '溶解度粗测', sub: '96孔板 · 2024.06 · 已完成', best: '92.1%',
+      detail: { expId: 'EXP-01', drug: '粗品样品 A', totalMass: 9600, dose: 100, n: 96, avg: 88.4, bestCoord: 'C07', combos: 5, created: '2024.06.02' } },
+    { id: 'ARC-2', name: '溶剂体系预筛', sub: '48孔板 · 2024.05 · 已完成', best: '90.8%',
+      detail: { expId: 'EXP-02', drug: '粗品样品 B', totalMass: 4800, dose: 50, n: 48, avg: 87.2, bestCoord: 'E03', combos: 3, created: '2024.05.18' } }
   ];
 }
 
@@ -329,13 +331,16 @@ function renderHome() {
     initCarousel();
   }
   $('home-archive').innerHTML = DB.archives.length ? DB.archives.map(function (a) {
-    return '<div class="card arch-row"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
+    return '<div class="card arch-row" data-archid="' + a.id + '"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
       '<div class="arch-name">' + esc(a.name) + '<div class="arch-sub">' + esc(a.sub) + '</div></div>' +
       '<span class="arch-best">最佳 ' + esc(a.best) + '</span>' +
       '<span class="arch-del" data-delarch="' + a.id + '">删除</span></div>';
-  }).join('') : '<p class="hint" style="margin:6px 2px">暂无归档实验</p>';
+  }).join('') : '<p class="hint" style="margin:6px 2px">暂无归档实验 · 在 s11 结果页「完成并归档」后自动收录</p>';
   $('home-archive').querySelectorAll('[data-delarch]').forEach(function (el) {
-    el.addEventListener('click', function () { askDeleteArch(el.getAttribute('data-delarch')); });
+    el.addEventListener('click', function (e) { e.stopPropagation(); askDeleteArch(el.getAttribute('data-delarch')); });
+  });
+  $('home-archive').querySelectorAll('[data-archid]').forEach(function (el) {
+    el.addEventListener('click', function () { showArchDetail(el.getAttribute('data-archid')); });
   });
 }
 /* 删除进行中实验（确认弹层） */
@@ -361,6 +366,50 @@ function askDeleteArch(id) {
     DB.archives = DB.archives.filter(function (x) { return x.id !== id; });
     save(); closeSheet();
     renderHome(); toast('已删除归档');
+  };
+}
+/* 归档详情（点击归档行查看） */
+function showArchDetail(id) {
+  var a = null;
+  DB.archives.forEach(function (x) { if (x.id === id) a = x; });
+  if (!a) return;
+  var d = a.detail || {};
+  function row(k, v) { return '<div class="arch-d-row"><span>' + k + '</span><b>' + esc(v) + '</b></div>'; }
+  var body = '<div class="arch-detail">' +
+    row('来源实验', d.expId || '—') +
+    row('待纯化药品', d.drug || '—') +
+    row('孔板规格', (a.sub || '').split(' · ')[0] || '96孔板') +
+    row('完成日期', d.created || (a.sub || '').split(' · ')[1] || '—') +
+    row('已录入孔位', d.n != null ? d.n + ' / 96' : '—') +
+    row('平均纯化率', d.avg != null ? d.avg.toFixed(1) + '%' : '—') +
+    row('最佳纯化率', esc(a.best)) +
+    row('最佳孔位', d.bestCoord || '—') +
+    row('条件组合数', d.combos != null ? d.combos + ' 个' : '—') +
+    '</div>';
+  openSheet(esc(a.name), body);
+}
+/* 完成实验并归档（s11 结果页发起 → 移入首页归档列表） */
+function askArchiveExp() {
+  if (!DB.exp) { toast('当前没有进行中的实验'); return; }
+  var st = stats();
+  openSheet('完成实验并归档', '<p>将 <b>' + esc(DB.exp.id) + ' ' + esc(DB.exp.name) + '</b> 移入归档列表，归档后可在首页点击查看详情。</p>' +
+    '<div class="cta-row"><button class="cta-line" id="arch-go">确认归档 <i>→</i></button></div>');
+  $('arch-go').onclick = function () {
+    var mx = 0;
+    DB.archives.forEach(function (x) { var m = /^ARC-(\d+)$/.exec(x.id); if (m) mx = Math.max(mx, +m[1]); });
+    var d = new Date(), pd = function (x) { return (x < 10 ? '0' : '') + x; };
+    var date = d.getFullYear() + '.' + pd(d.getMonth() + 1) + '.' + pd(d.getDate());
+    var done = DB.exp.name;
+    DB.archives.unshift({
+      id: 'ARC-' + (mx + 1), name: done, sub: '96孔板 · ' + date + ' · 已完成',
+      best: st.best.purity.toFixed(1) + '%',
+      detail: { expId: DB.exp.id, drug: DB.exp.drug, totalMass: DB.exp.totalMass, dose: DB.exp.dose,
+        n: st.n, avg: st.avg, bestCoord: st.best.coord, combos: DB.exp.comboCount, created: date }
+    });
+    delete DB.exps[DB.exp.id];
+    DB.curExp = Object.keys(DB.exps).sort().reverse()[0] || null;
+    normalizeDB(); save(); closeSheet();
+    go('s02'); toast('「' + done + '」已归档');
   };
 }
 /* 进行中实验轮播：横向拖拽/滚轮 + 惯性 + 居中磁吸 + 距中心动态缩放/透明度/位移 */
@@ -1178,7 +1227,9 @@ function renderResults() {
     '<div class="sec-head"><span class="sec-zh">组合均值</span><span class="sec-en">BY COMBO</span></div>' +
     '<div class="card dist combo-avg">' + avgRows + '</div>' +
     '<div class="op-row"><button class="text-act" data-go="s12">最佳条件</button>' +
-    '<button class="text-act" data-go="s13">结果排名</button></div>';
+    '<button class="text-act" data-go="s13">结果排名</button>' +
+    '<button class="text-act" id="btn-archive">完成并归档</button></div>';
+  var ab = $('btn-archive'); if (ab) ab.onclick = askArchiveExp;
 }
 
 /* 12 最佳条件 */
