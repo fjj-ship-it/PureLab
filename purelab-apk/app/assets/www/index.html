@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>PureLab 高通量重结晶实验助手</title>
-<link rel="stylesheet" href="app.css?v=22">
+<link rel="stylesheet" href="app.css?v=23">
 </head>
 <body>
 <div id="app">
@@ -51,14 +51,14 @@
     </header>
     <div class="page">
       <div class="greet">
-        <div class="greet-en">Good morning</div>
+        <div class="greet-en" id="greet-en">Good morning</div>
         <div class="greet-zh">今天也顺利完成实验</div>
       </div>
       <div class="sec-head"><span class="sec-zh">进行中的实验</span><span class="sec-en">ONGOING</span></div>
       <div id="home-ongoing"></div>
       <div class="sec-head"><span class="sec-zh">已归档实验</span><span class="sec-en">ARCHIVE</span></div>
       <div id="home-archive"></div>
-      <div class="cta-row"><button class="cta-line" data-go="s03">新建实验 <i>→</i></button></div>
+      <div class="cta-row"><button class="cta-glass" data-go="s03">新建实验 <i>→</i></button></div>
     </div>
   </section>
 
@@ -286,6 +286,6 @@
 
   <div class="toast" id="toast"></div>
 </div>
-<script src="app.js?v=22"></script>
+<script src="app.js?v=23"></script>
 </body>
 </html>

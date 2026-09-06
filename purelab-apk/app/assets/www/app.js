@@ -306,6 +306,10 @@ function expStats(e) {
 }
 function renderHome() {
   normalizeDB();
+  /* 问候语随时间切换：5-12 morning / 12-18 afternoon / 其余 evening */
+  var hr = new Date().getHours();
+  var greet = hr < 5 ? 'Good evening' : hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+  var ge = $('greet-en'); if (ge) ge.textContent = greet;
   var ids = Object.keys(DB.exps).sort().reverse();           /* 最新实验在最前 */
   if (DB.curExp && ids.indexOf(DB.curExp) > -1) {
     ids.splice(ids.indexOf(DB.curExp), 1); ids.unshift(DB.curExp);   /* 激活实验恒排首位 */

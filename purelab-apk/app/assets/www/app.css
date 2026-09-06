@@ -206,11 +206,25 @@ input{font-family:inherit;color:var(--ink)}
 .frow.check input{width:16px;height:16px;accent-color:var(--ink2)}
 .hint{font-size:11px;color:var(--ink3);line-height:1.7;margin:12px 2px}
 
-/* ---------------- CTA：文字 + 细线（禁胶囊/巨型按钮） ---------------- */
+/* ---------------- CTA：文字 + 细线（禁胶囊/巨型按钮）；首页「新建实验」用苹果液态玻璃风 ---------------- */
 .cta-row{display:flex;justify-content:flex-end;margin:22px 0 8px}
 .cta-line{font-size:15px;font-weight:600;letter-spacing:.06em;padding:4px 2px 8px;
   border-bottom:1px solid var(--ink)}
 .cta-line i{font-style:normal;margin-left:6px}
+/* 液态玻璃按钮：半透明磨砂 + 高光描边 + 内阴影镜面反光 */
+.cta-glass{position:relative;display:inline-flex;align-items:center;gap:8px;
+  font-size:15px;font-weight:600;letter-spacing:.06em;color:var(--ink);
+  padding:12px 24px;border-radius:999px;border:1px solid rgba(255,255,255,.6);
+  background:linear-gradient(135deg,rgba(255,255,255,.65),rgba(255,255,255,.30) 52%,rgba(216,211,204,.42));
+  backdrop-filter:blur(14px) saturate(1.6);-webkit-backdrop-filter:blur(14px) saturate(1.6);
+  box-shadow:0 6px 20px rgba(47,58,49,.13),inset 0 1px 0 rgba(255,255,255,.8),inset 0 -1px 1px rgba(47,58,49,.06);
+  transition:transform .18s ease,box-shadow .18s ease}
+.cta-glass::after{content:'';position:absolute;inset:2px;border-radius:999px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 42%)}
+.cta-glass:active{transform:scale(.96);
+  box-shadow:0 3px 10px rgba(47,58,49,.16),inset 0 1px 0 rgba(255,255,255,.85)}
+.cta-glass i{font-style:normal;transition:transform .18s ease}
+.cta-glass:active i{transform:translateX(3px)}
 .ghost-add{display:block;width:100%;text-align:left;font-size:13px;font-weight:600;
   color:var(--ink2);padding:13px 16px;border:1px dashed var(--line);
   border-radius:var(--r-card);margin-top:2px}
