@@ -14,6 +14,17 @@ export PATH="$JDK:$PATH"
 cd "$ROOT"
 mkdir -p build/obj
 
+# ---- 版本管理：读取 app/version.properties，每次构建 versionCode 自增 1 ----
+VERFILE="app/version.properties"
+if [ ! -f "$VERFILE" ]; then
+  echo "VERSION_CODE=1" > "$VERFILE"
+  echo "VERSION_NAME=1.0.0" >> "$VERFILE"
+fi
+VC=$(grep '^VERSION_CODE=' "$VERFILE" | cut -d= -f2 | tr -d '[:space:]')
+VN=$(grep '^VERSION_NAME=' "$VERFILE" | cut -d= -f2 | tr -d '[:space:]')
+APK_OUT="PureLab-v${VN}-release.apk"
+echo "== build versionCode=$VC versionName=$VN -> $APK_OUT =="
+
 W_PLAT="$(cygpath -w "$PLAT")"
 
 echo "[1/8] javac ..."
@@ -32,6 +43,7 @@ echo "[4/8] aapt2 link ..."
   --manifest app/AndroidManifest.xml \
   -A app/assets \
   --min-sdk-version 24 --target-sdk-version 35 \
+  --version-code "$VC" --version-name "$VN" \
   --auto-add-overlay \
   build/res.zip
 
@@ -53,10 +65,14 @@ fi
 echo "[8/8] apksigner sign ..."
 "$BT/apksigner.bat" sign \
   --ks build/purelab.keystore --ks-pass pass:purelab123 --ks-key-alias purelab \
-  --out PureLab-v1.0-debug.apk build/app-aligned.apk
+  --out "$APK_OUT" build/app-aligned.apk
 
-"$BT/apksigner.bat" verify --print-certs PureLab-v1.0-debug.apk
+# 版本号落盘自增，供下次构建使用
+echo "VERSION_CODE=$((VC + 1))" > "$VERFILE"
+echo "VERSION_NAME=$VN" >> "$VERFILE"
+
+"$BT/apksigner.bat" verify --print-certs "$APK_OUT"
 
 echo ""
-echo "DONE -> $ROOT/PureLab-v1.0-debug.apk"
-ls -la PureLab-v1.0-debug.apk
+echo "DONE -> $ROOT/$APK_OUT (versionCode=$((VC + 1)) next)"
+ls -la "$APK_OUT"

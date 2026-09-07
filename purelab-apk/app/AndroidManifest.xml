@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.purelab.app"
-    android:versionCode="1"
-    android:versionName="1.0">
+    package="com.purelab.app">
+    <!-- 版本号由 build_local.sh 从 app/version.properties 注入，不在此写死 -->
 
     <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="35" />
 
