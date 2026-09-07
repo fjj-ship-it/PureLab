@@ -134,10 +134,10 @@ function normalizeDB() {
 }
 
 var DB;
-try { DB = JSON.parse(localStorage.getItem('purelab_db')) || freshDB(); }
+try { DB = JSON.parse(localStorage.getItem('purelab_db')) || freshDB(); if (DB) delete DB._ui; }
 catch (e) { DB = freshDB(); }
 normalizeDB();
-function save() { try { localStorage.setItem('purelab_db', JSON.stringify(DB)); } catch (e) {} }
+function save() { try { localStorage.setItem('purelab_db', JSON.stringify(DB, function (k, v) { return k === '_ui' ? undefined : v; })); } catch (e) {} }
 
 /* ---------------- 工具 ---------------- */
 function $(id) { return document.getElementById(id); }
@@ -992,9 +992,9 @@ function renderRun() {
     '<div class="t">' + esc(DB.exp.id) + ' · ' + esc(DB.exp.name) + '</div>' +
     '<div class="s">96孔板 · 进行中 · 待纯化药品：' + esc(DB.exp.drug) + '</div>';
   $('exp-stats').innerHTML =
-    '<div class="stat"><div class="v"><span id="st-n">' + (ui.runN != null ? ui.runN : st.n) + '</span><small>/96 孔</small></div><div class="k">已录入 ' + (st.n / 96 * 100).toFixed(1) + '%</div></div>' +
-    '<div class="stat"><div class="v warm"><span id="st-best">' + (ui.runBest != null ? ui.runBest.toFixed(1) : st.best.purity.toFixed(1)) + '%</span></div><div class="k">当前最佳 · ' + st.best.coord + '</div></div>' +
-    '<div class="stat"><div class="v"><span id="st-avg">' + (ui.runAvg != null ? ui.runAvg.toFixed(1) : st.avg.toFixed(1)) + '%</span></div><div class="k">平均回收率</div></div>';
+    '<div class="stat"><div class="v"><span id="st-n">' + (ui.runN != null ? ui.runN : 0) + '</span><small>/96 孔</small></div><div class="k">已录入 ' + (st.n / 96 * 100).toFixed(1) + '%</div></div>' +
+    '<div class="stat"><div class="v warm"><span id="st-best">' + (ui.runBest != null ? ui.runBest.toFixed(1) : '0.0') + '%</span></div><div class="k">当前最佳 · ' + st.best.coord + '</div></div>' +
+    '<div class="stat"><div class="v"><span id="st-avg">' + (ui.runAvg != null ? ui.runAvg.toFixed(1) : '0.0') + '%</span></div><div class="k">平均回收率</div></div>';
   countUp($('st-n'), st.n, 0);
   countUp($('st-best'), st.best.purity, 1, '%');
   countUp($('st-avg'), st.avg, 1, '%');
@@ -1281,11 +1281,11 @@ function renderResults() {
       '<span class="dist-v">' + a.toFixed(1) + '</span></div>';
   }).join('');
   $('results-page').innerHTML =
-    '<div class="hero dark"><span class="big" id="res-hero">' + (ui.resHero != null ? ui.resHero.toFixed(1) : st.best.purity.toFixed(1)) + '%</span>' +
+    '<div class="hero dark"><span class="big" id="res-hero">' + (ui.resHero != null ? ui.resHero.toFixed(1) : '0.0') + '%</span>' +
       '<span class="who">当前最佳回收率<br><b>' + st.best.coord + '</b>（' + comboOf(st.best.combo).name + '）</span></div>' +
     '<div class="stat-row">' +
-      '<div class="stat"><div class="v"><span id="res-n">' + (ui.resN != null ? ui.resN : st.n) + '</span><small>/96</small></div><div class="k">已录入 ' + (st.n / 96 * 100).toFixed(1) + '%</div></div>' +
-      '<div class="stat"><div class="v"><span id="res-avg">' + (ui.resAvg != null ? ui.resAvg.toFixed(1) : st.avg.toFixed(1)) + '%</span></div><div class="k">平均回收率</div></div>' +
+      '<div class="stat"><div class="v"><span id="res-n">' + (ui.resN != null ? ui.resN : 0) + '</span><small>/96</small></div><div class="k">已录入 ' + (st.n / 96 * 100).toFixed(1) + '%</div></div>' +
+      '<div class="stat"><div class="v"><span id="res-avg">' + (ui.resAvg != null ? ui.resAvg.toFixed(1) : '0.0') + '%</span></div><div class="k">平均回收率</div></div>' +
       '<div class="stat"><div class="v">' + (96 - st.n) + '<small> 孔</small></div><div class="k">待录入</div></div>' +
     '</div>' +
     '<div class="sec-head"><span class="sec-zh">回收率分布</span><span class="sec-en">DISTRIBUTION</span></div>' +

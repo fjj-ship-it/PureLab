@@ -420,8 +420,8 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 
 /* ---------------- v28 高级动效（源自 B站 SPT 10 种高级交互） ---------------- */
 /* 屏幕切换：淡入 + 轻微上浮，替代生硬 fade */
-.screen.active{animation:screenIn .28s cubic-bezier(.22,.9,.36,1)}
-@keyframes screenIn{from{opacity:.2;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.screen.active{animation:screenIn .34s cubic-bezier(.22,.9,.36,1)}
+@keyframes screenIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 /* 底部弹层：弹性曲线（借鉴 06 弹簧/04 回弹） */
 .sheet{transition:transform .34s cubic-bezier(.34,1.35,.5,1)}
 .sheet-mask{transition:opacity .26s ease}
