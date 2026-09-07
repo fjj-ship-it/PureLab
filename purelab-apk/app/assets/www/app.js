@@ -17,7 +17,7 @@ var COMBOS = [
 ];
 var REFETCH = { F: 'A', G: 'B', H: 'C' };          /* F–H 复筛区，重复 A–C 体系 */
 var ROWS = ['A','B','C','D','E','F','G','H'];
-var BASE  = { A: 86.8, B: 87.5, C: 88.2, D: 87.9, E: 84.5 };  /* 各组合基准纯化率 */
+var BASE  = { A: 86.8, B: 87.5, C: 88.2, D: 87.9, E: 84.5 };  /* 各组合基准回收率 */
 var RANKED = { C7: 94.2, D4: 93.1, C3: 92.8, B6: 91.5, A2: 90.4 }; /* 排名五强（固定） */
 var BEST_WELL = 'C7';
 
@@ -59,6 +59,7 @@ function demoWells(frac) {
       if (done) {
         var p = Math.min(90.0, +(BASE[rowCombo(row)] + jitter(i)).toFixed(1));
         w.input = 100.0; w.output = +p.toFixed(1); w.purity = +p.toFixed(1);
+        w.assay = +Math.max(80, p - 0.6 - (i % 4) * 0.9).toFixed(1);   /* 演示纯度：HPLC 实测略低于回收率 */
       }
       wells[coord] = w;
     }
@@ -385,8 +386,8 @@ function showArchDetail(id) {
     row('孔板规格', (a.sub || '').split(' · ')[0] || '96孔板') +
     row('完成日期', d.created || (a.sub || '').split(' · ')[1] || '—') +
     row('已录入孔位', d.n != null ? d.n + ' / 96' : '—') +
-    row('平均纯化率', d.avg != null ? d.avg.toFixed(1) + '%' : '—') +
-    row('最佳纯化率', esc(a.best)) +
+    row('平均回收率', d.avg != null ? d.avg.toFixed(1) + '%' : '—') +
+    row('最佳回收率', esc(a.best)) +
     row('最佳孔位', d.bestCoord || '—') +
     row('最佳条件', d.bestCombo || '—') +
     (d.bestRecipe && d.bestRecipe !== '—' ? row('组合配方', d.bestRecipe) : '') +
@@ -948,7 +949,7 @@ function renderRun() {
   $('exp-stats').innerHTML =
     '<div class="stat"><div class="v">' + st.n + '<small>/96 孔</small></div><div class="k">已录入 ' + (st.n / 96 * 100).toFixed(1) + '%</div></div>' +
     '<div class="stat"><div class="v warm">' + st.best.purity.toFixed(1) + '%</div><div class="k">当前最佳 · ' + st.best.coord + '</div></div>' +
-    '<div class="stat"><div class="v">' + st.avg.toFixed(1) + '%</div><div class="k">平均纯化率</div></div>';
+    '<div class="stat"><div class="v">' + st.avg.toFixed(1) + '%</div><div class="k">平均回收率</div></div>';
   renderPlate($('plate-mini'), 'mini', {
     tap: function (coord) { DB.selWell = coord; save(); go('s10'); }   /* 直达单孔详情，少一跳 */
   });
@@ -1074,7 +1075,7 @@ function nowStr() {
   return d.getFullYear() + '.' + p(d.getMonth() + 1) + '.' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
 }
 
-/* 10 单孔详情：投入量/产出量/纯化率三行直接编辑，备注自填可留空 */
+/* 10 单孔详情：投入量/产出量/回收率三行直接编辑，备注自填可留空 */
 function wellNum(v) { v = String(v).trim(); if (v === '') return null; var x = parseFloat(v); return isNaN(x) ? null : x; }
 function renderWell() {
   var w = DB.wells[DB.selWell || bestCoord() || 'C7'];
@@ -1091,8 +1092,10 @@ function renderWell() {
     '<div class="form-card kv-card">' +
       '<div class="kv"><span class="k">投入量</span><span class="iedit"><input id="we-in" type="number" step="0.1" min="0" inputmode="decimal" value="' + (w.input != null ? w.input.toFixed(1) : '') + '" placeholder="—"><span class="unit">mg</span></span></div>' +
       '<div class="kv"><span class="k">产出量</span><span class="iedit"><input id="we-out" type="number" step="0.1" min="0" inputmode="decimal" value="' + (w.output != null ? w.output.toFixed(1) : '') + '" placeholder="—"><span class="unit">mg</span></span></div>' +
-      '<div class="kv"><span class="k">纯化率</span><span class="iedit"><input id="we-pur" type="number" step="0.1" min="0" inputmode="decimal" value="' + (w.purity != null ? w.purity.toFixed(1) : '') + '" placeholder="—"><span class="unit">%</span></span></div>' +
+      '<div class="kv"><span class="k">回收率</span><span class="iedit"><input id="we-pur" type="number" step="0.1" min="0" inputmode="decimal" value="' + (w.purity != null ? w.purity.toFixed(1) : '') + '" placeholder="—"><span class="unit">%</span></span></div>' +
+      '<div class="kv"><span class="k">纯度<i class="assay-sub">HPLC 实测 · 选填</i></span><span class="iedit"><input id="we-assay" type="number" step="0.1" min="0" max="100" inputmode="decimal" value="' + (w.assay != null ? w.assay.toFixed(1) : '') + '" placeholder="—"><span class="unit">%</span></span></div>' +
     '</div>' +
+    '<p class="hint">回收率 = 产出量 ÷ 投入量 × 100%（称重自动计算）；纯度需 HPLC 等仪器实测，可留空。</p>' +
     '<div class="sec-head"><span class="sec-zh">备注</span><span class="sec-en">NOTE</span></div>' +
     '<div class="card note-card"><textarea id="w-note" rows="2" placeholder="填写备注，可留空">' + esc(w.note || '') + '</textarea></div>' +
     '<div class="sec-head"><span class="sec-zh">操作记录</span><span class="sec-en">TIMELINE</span></div>' +
@@ -1144,12 +1147,14 @@ function bindWellNav(w) {
   if (i > 0) $('w-prev').onclick = function () { step(-1); };
   if (i < seq.length - 1) $('w-next').onclick = function () { step(1); };
 }
-/* 三行联动编辑：填任意两个推第三个；产出量留空 = 清除该孔数据 */
+/* 单孔联动编辑：投入/产出/回收率互推（回收率=产出÷投入）；纯度为仪器实测，单独选填 */
 function bindWellEdits(w) {
   var snap = { done: !!w.done, input: w.input, output: w.output };
   function apply(src) {
     var vi = wellNum($('we-in').value), vo = wellNum($('we-out').value), vp = wellNum($('we-pur').value);
-    if (src === 'pur' && vp != null && vi != null && vi > 0) {      /* 填纯化率 → 反推产出量 */
+    var va = wellNum($('we-assay').value);
+    if (va != null && va >= 0 && va <= 100) w.assay = +va.toFixed(1); else delete w.assay;
+    if (src === 'pur' && vp != null && vi != null && vi > 0) {      /* 填回收率 → 反推产出量 */
       vo = +(vp / 100 * vi).toFixed(1);
       $('we-out').value = vo.toFixed(1);
     }
@@ -1162,7 +1167,7 @@ function bindWellEdits(w) {
     }
     save();
   }
-  [['we-in', 'in'], ['we-out', 'out'], ['we-pur', 'pur']].forEach(function (p) {
+  [['we-in', 'in'], ['we-out', 'out'], ['we-pur', 'pur'], ['we-assay', 'assay']].forEach(function (p) {
     $(p[0]).addEventListener('input', function () { apply(p[1]); });
     $(p[0]).addEventListener('change', function () { wellCommit(w, snap); });
   });
@@ -1173,12 +1178,14 @@ function bindWellEdits(w) {
 function wellCommit(w, snap) {
   if (!w.combo) { toast('未分配组合的孔位不可录入'); renderWell(); return; }
   var vi = wellNum($('we-in').value), vo = wellNum($('we-out').value), vp = wellNum($('we-pur').value);
+  var va = wellNum($('we-assay').value);
   if (vi == null || vi <= 0) { toast('投入量需为正数'); renderWell(); return; }
-  if (vp != null && vp > 100) { toast('纯化率不能超过 100%'); renderWell(); return; }
+  if (vp != null && vp > 100) { toast('回收率不能超过 100%'); renderWell(); return; }
+  if (va != null && va > 100) { toast('纯度不能超过 100%'); renderWell(); return; }
   if (vo == null) {                          /* 产出量留空 → 该孔回到未录入 */
     if (snap.done) (DB.ops[w.coord] = DB.ops[w.coord] || []).unshift({ t: nowStr(), d: '清除数据（原产出量 ' + snap.output.toFixed(1) + ' mg）' });
     var had = snap.done || snap.output != null;
-    w.done = false; delete w.output; delete w.purity;
+    w.done = false; delete w.output; delete w.purity; delete w.assay;
     save(); renderWell();
     if (had) toast(w.coord + ' 数据已清除');
     return;
@@ -1186,6 +1193,7 @@ function wellCommit(w, snap) {
   if (vo < 0) { toast('产出量不能为负数'); renderWell(); return; }
   if (vo > vi) { toast('产出量大于投入量，请核对'); renderWell(); return; }
   w.input = vi; w.output = vo; w.purity = +(vo / vi * 100).toFixed(1); w.done = true;
+  if (va != null && va >= 0 && va <= 100) w.assay = +va.toFixed(1); else delete w.assay;
   $('we-pur').value = w.purity.toFixed(1);
   var changed = !snap.done || snap.input !== vi || snap.output !== vo;
   if (changed) {
@@ -1197,7 +1205,7 @@ function wellCommit(w, snap) {
     });
   }
   save(); renderWell();
-  if (changed) toast(w.coord + ' 已保存 · 纯化率 ' + w.purity.toFixed(1) + '%');
+  if (changed) toast(w.coord + ' 已保存 · 回收率 ' + w.purity.toFixed(1) + '%' + (w.assay != null ? ' · 纯度 ' + w.assay.toFixed(1) + '%' : ''));
 }
 
 /* 11 结果总览 */
@@ -1212,7 +1220,7 @@ function renderResults() {
   });
   var maxB = Math.max.apply(null, Object.keys(buckets).map(function (k) { return buckets[k]; }).concat([1]));
   var distRows = Object.keys(buckets).map(function (k) {
-    return '<div class="dist-row"><span class="dist-k">纯化率 ' + k + '</span>' +
+    return '<div class="dist-row"><span class="dist-k">回收率 ' + k + '</span>' +
       '<span class="dist-bar"><i style="width:' + (buckets[k] / maxB * 100) + '%"></i></span>' +
       '<span class="dist-v">' + buckets[k] + '</span></div>';
   }).join('');
@@ -1224,13 +1232,13 @@ function renderResults() {
   }).join('');
   $('results-page').innerHTML =
     '<div class="hero dark"><span class="big">' + st.best.purity.toFixed(1) + '%</span>' +
-      '<span class="who">当前最佳纯化率<br><b>' + st.best.coord + '</b>（' + comboOf(st.best.combo).name + '）</span></div>' +
+      '<span class="who">当前最佳回收率<br><b>' + st.best.coord + '</b>（' + comboOf(st.best.combo).name + '）</span></div>' +
     '<div class="stat-row">' +
       '<div class="stat"><div class="v">' + st.n + '<small>/96</small></div><div class="k">已录入 ' + (st.n / 96 * 100).toFixed(1) + '%</div></div>' +
-      '<div class="stat"><div class="v">' + st.avg.toFixed(1) + '%</div><div class="k">平均纯化率</div></div>' +
+      '<div class="stat"><div class="v">' + st.avg.toFixed(1) + '%</div><div class="k">平均回收率</div></div>' +
       '<div class="stat"><div class="v">' + (96 - st.n) + '<small> 孔</small></div><div class="k">待录入</div></div>' +
     '</div>' +
-    '<div class="sec-head"><span class="sec-zh">纯化率分布</span><span class="sec-en">DISTRIBUTION</span></div>' +
+    '<div class="sec-head"><span class="sec-zh">回收率分布</span><span class="sec-en">DISTRIBUTION</span></div>' +
     '<div class="card dist">' + distRows + '</div>' +
     '<div class="sec-head"><span class="sec-zh">组合均值</span><span class="sec-en">BY COMBO</span></div>' +
     '<div class="card dist combo-avg">' + avgRows + '</div>' +
@@ -1261,7 +1269,8 @@ function renderBest() {
     '</div>' +
     '<div class="form-card" style="margin-top:14px">' +
       kv('最佳孔位', w.coord) + kv('投入量', w.input.toFixed(1) + ' mg') +
-      kv('产出量', w.output.toFixed(1) + ' mg') + kv('纯化率', w.purity.toFixed(1) + '%', true) +
+      kv('产出量', w.output.toFixed(1) + ' mg') + kv('回收率', w.purity.toFixed(1) + '%', true) +
+      (w.assay != null ? kv('纯度（HPLC 实测）', w.assay.toFixed(1) + '%') : '') +
     '</div>' +
     '<p class="hint">收藏后，新建实验时可在「下一轮条件」中由你主动选用该条件；应用不做任何自动推荐。</p>' +
     '<div class="cta-row"><button class="cta-line" id="btn-fav">' +
@@ -1289,7 +1298,8 @@ function renderRank() {
       '<span class="rank-no' + (i < 3 ? ' top' : '') + '">' + (i + 1) + '</span>' +
       '<span class="rank-coord">' + w.coord + '</span>' +
       '<span class="rank-combo"><i style="width:9px;height:9px;border-radius:50%;background:' + cm.color + '"></i>' + cm.name + '</span>' +
-      '<span class="rank-pct">' + w.purity.toFixed(1) + '%</span></div>';
+      '<span class="rank-pct">' + w.purity.toFixed(1) + '%</span>' +
+      (w.assay != null ? '<span class="rank-assay">纯 ' + w.assay.toFixed(1) + '%</span>' : '') + '</div>';
   }).join('');
   $('rank-page').innerHTML = chips +
     '<div class="card rank-card">' + rows + '</div>' +
@@ -1302,10 +1312,10 @@ function renderRank() {
   });
 }
 $('btn-export').addEventListener('click', function () {
-  var lines = ['排名,孔位,组合,试剂配比,投入量(mg),产出量(mg),纯化率(%)'];
+  var lines = ['排名,孔位,组合,试剂配比,投入量(mg),产出量(mg),回收率(%),纯度(%)'];
   completedWells().sort(function (a, b) { return b.purity - a.purity; }).forEach(function (w, i) {
     var cm = comboOf(w.combo);
-    lines.push([(i + 1), w.coord, cm.name, '"' + cm.recipe + '"', w.input.toFixed(1), w.output.toFixed(1), w.purity.toFixed(1)].join(','));
+    lines.push([(i + 1), w.coord, cm.name, '"' + cm.recipe + '"', w.input.toFixed(1), w.output.toFixed(1), w.purity.toFixed(1), w.assay != null ? w.assay.toFixed(1) : ''].join(','));
   });
   var csv = lines.join('\n');
   openSheet('导出数据 · CSV 预览',

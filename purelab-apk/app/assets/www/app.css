@@ -414,3 +414,6 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .exp-ov-row .pbar{margin-top:8px}
 
 .exp-recipe{margin-top:5px;font-size:10.5px;color:var(--ink3);letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.assay-sub{display:block;font-size:9.5px;color:var(--ink3);font-style:normal;font-weight:400;margin-top:2px}
+.rank-assay{font-size:10px;color:var(--ink3);margin-left:6px;white-space:nowrap}

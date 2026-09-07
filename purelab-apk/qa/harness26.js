@@ -64,7 +64,7 @@ function ok(name, cond, extra) {
   await page.waitForTimeout(400);
   const sheetTxt = await page.evaluate(() => document.getElementById('sheet-body').textContent);
   ok('A3 详情含来源实验 EXP-09', sheetTxt.includes('EXP-09'), sheetTxt.slice(0, 120));
-  ok('A3 详情含平均纯化率与最佳孔位', /平均纯化率/.test(sheetTxt) && /最佳孔位/.test(sheetTxt));
+  ok('A3 详情含平均回收率与最佳孔位与最佳条件', /平均回收率/.test(sheetTxt) && /最佳孔位/.test(sheetTxt) && /最佳条件/.test(sheetTxt));
   await page.evaluate(() => closeSheet());
   await page.waitForTimeout(300);
 
