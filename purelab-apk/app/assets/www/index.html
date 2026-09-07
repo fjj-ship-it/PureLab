@@ -4,36 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>PureLab 高通量重结晶实验助手</title>
-<link rel="stylesheet" href="app.css?v=31">
+<link rel="stylesheet" href="app.css?v=32">
 </head>
 <body>
 <div id="app">
 
-  <!-- 01 启动页 -->
+  <!-- 01 启动页（v32：按设计稿 1:1 还原；水彩枝条为图片资源 img/launch-branch.png，其余均为代码实现） -->
   <section class="screen" id="s01">
-    <div class="launch" data-go="s02">
-      <svg class="launch-art" viewBox="0 0 220 260" width="220" height="260" fill="none" aria-hidden="true">
-        <path d="M110 244 C108 190 104 120 118 44" stroke="#9CA296" stroke-width="2.2" stroke-linecap="round"/>
-        <path d="M116 96 C96 88 82 74 78 52 C100 56 114 72 116 96Z" fill="#536253" opacity=".9"/>
-        <path d="M114 132 C136 124 150 108 152 86 C132 92 118 108 114 132Z" fill="#2F3A31" opacity=".85"/>
-        <path d="M112 170 C92 162 80 148 76 128 C96 132 110 148 112 170Z" fill="#9CA296" opacity=".8"/>
-        <path d="M116 66 C104 58 96 46 94 30 C110 34 118 48 116 66Z" fill="#C1BEB5" opacity=".9"/>
-        <path d="M110 208 C128 202 140 190 144 172 C126 176 112 190 110 208Z" fill="#536253" opacity=".7"/>
-        <circle cx="118" cy="34" r="4" fill="#C0A381" opacity=".85"/>
-        <circle cx="76" cy="126" r="2.5" fill="#C0A381" opacity=".6"/>
-        <circle cx="152" cy="84" r="2.5" fill="#C0A381" opacity=".6"/>
-      </svg>
-      <div class="launch-leaf">
-        <svg viewBox="0 0 24 24" width="34" height="34" fill="none">
-          <path d="M12 21c0-6 2-11 9-14-1 7-4 12-9 14z" fill="#536253"/>
-          <path d="M12 21C8 16 5 13 3 7c6 1 9 6 9 14z" fill="#2F3A31"/>
-        </svg>
-      </div>
+    <div class="launch" id="launch-tap">
+      <!-- 图片替代：水彩植物枝条插画（无法用 CSS/SVG 精确复现），取自设计稿裁剪 -->
+      <img class="launch-art-img" src="img/launch-branch.png" alt="" draggable="false">
       <div class="launch-brand">PureLab</div>
       <div class="launch-sub">高通量纯化实验助手</div>
-      <div class="launch-en">RECRYSTALLIZATION · HIGH THROUGHPUT</div>
-      <div class="launch-cta">开始使用</div>
-      <div class="launch-ver">演示数据 · EXP-03</div>
+      <div class="launch-script">Record every step,<br>discover the best.</div>
     </div>
   </section>
 
@@ -302,6 +285,6 @@
 
   <div class="toast" id="toast"></div>
 </div>
-<script src="app.js?v=31"></script>
+<script src="app.js?v=32"></script>
 </body>
 </html>

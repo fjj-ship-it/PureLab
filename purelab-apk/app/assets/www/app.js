@@ -1585,3 +1585,20 @@ function renderExpOverview() {
 /* ---------------- 启动 ---------------- */
 renderHome();
 show('s01');
+/* v32 启动页衔接：2.6s 自动淡出进入主界面，点击可跳过 */
+(function () {
+  var launched = false;
+  function enter() {
+    if (launched || stack[stack.length - 1] !== 's01') return;
+    launched = true;
+    var s1 = $('s01');
+    s1.classList.add('launch-out');
+    setTimeout(function () {
+      stack = ['s02'];            /* 启动页不留在返回栈：主界面按返回键直接退出 */
+      show('s02');
+      s1.classList.remove('launch-out');
+    }, 380);
+  }
+  var t = setTimeout(enter, 2600);
+  $('launch-tap').addEventListener('click', function () { clearTimeout(t); enter(); });
+})();

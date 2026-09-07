@@ -147,17 +147,28 @@ input{font-family:inherit;color:var(--ink)}
 .sec-head .sec-zh{font-size:15px;font-weight:600}
 .sec-head .sec-en{font-size:9px;letter-spacing:.2em;color:var(--ink3)}
 
-/* ---------------- 启动页 ---------------- */
+/* ---------------- 启动页（v32 按设计稿 1:1 还原） ---------------- */
+#s01{background:
+  radial-gradient(130% 70% at 50% 0%, #FBF5EE 0%, rgba(251,245,238,0) 60%),
+  radial-gradient(120% 60% at 50% 100%, #EAE1D4 0%, rgba(234,225,212,0) 62%),
+  #F1E9DE}
 .launch{min-height:calc(100vh - var(--safe-t));display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:10px;padding:40px 24px}
-.launch-leaf{width:74px;height:74px;border-radius:24px;background:var(--paper);
-  box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center}
-.launch-brand{font-size:30px;font-weight:700;letter-spacing:.02em;margin-top:14px}
-.launch-sub{font-size:14px;color:var(--ink2);letter-spacing:.14em}
-.launch-en{font-size:9px;letter-spacing:.3em;color:var(--ink3);margin-top:2px}
-.launch-cta{margin-top:44px;font-size:15px;font-weight:600;color:var(--ink);
-  border-bottom:1px solid var(--ink);padding:0 6px 6px}
-.launch-ver{position:fixed;bottom:calc(var(--safe-b) + 20px);font-size:10px;color:var(--ink3);letter-spacing:.1em}
+  align-items:center;justify-content:flex-start;padding:0 24px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;user-select:none}
+/* 图片资源：水彩枝条插画（img/launch-branch.png），四周 mask 渐隐融入底色，宽度自适应不变形 */
+.launch-art-img{display:block;width:min(78vw,320px);height:auto;margin-top:9vh;
+  -webkit-mask-image:radial-gradient(92% 92% at 50% 50%, #000 58%, transparent 97%);
+  mask-image:radial-gradient(92% 92% at 50% 50%, #000 58%, transparent 97%);
+  animation:launchArtIn 1s cubic-bezier(.22,.9,.36,1) both}
+@keyframes launchArtIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.launch-brand{font-family:Georgia,'Times New Roman','Songti SC',serif;
+  font-size:36px;font-weight:700;letter-spacing:.01em;color:#242B26;margin-top:7vh;line-height:1}
+.launch-sub{font-size:18px;font-weight:700;color:#3A423C;letter-spacing:.18em;margin-top:16px}
+.launch-script{font-family:'Segoe Script','Bradley Hand','Savoye LET',cursive;
+  font-size:15px;line-height:1.85;color:#5A5B50;opacity:.85;margin-top:7vh;
+  transform:rotate(-2deg);text-align:center}
+@keyframes launchFade{to{opacity:0}}
+#s01.launch-out .launch{animation:launchFade .38s ease both}
 
 /* ---------------- 首页 ---------------- */
 .greet{margin:14px 0 4px}
