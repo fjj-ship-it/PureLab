@@ -126,9 +126,9 @@ function normalizeDB() {
   if (!DB.wizard) DB.wizard = { sel: {}, assign: null };
   if (!DB.archives) DB.archives = [               /* 归档实验（可删除，点击行可看详情） */
     { id: 'ARC-1', name: '溶解度粗测', sub: '96孔板 · 2024.06 · 已完成', best: '92.1%',
-      detail: { expId: 'EXP-01', drug: '粗品样品 A', totalMass: 9600, dose: 100, n: 96, avg: 88.4, bestCoord: 'C07', combos: 5, created: '2024.06.02' } },
+      detail: { expId: 'EXP-01', drug: '粗品样品 A', totalMass: 9600, dose: 100, n: 96, avg: 88.4, bestCoord: 'C07', bestCombo: '组合 B', bestRecipe: 'EA : MeOH = 1 : 2', combos: 5, created: '2024.06.02' } },
     { id: 'ARC-2', name: '溶剂体系预筛', sub: '48孔板 · 2024.05 · 已完成', best: '90.8%',
-      detail: { expId: 'EXP-02', drug: '粗品样品 B', totalMass: 4800, dose: 50, n: 48, avg: 87.2, bestCoord: 'E03', combos: 3, created: '2024.05.18' } }
+      detail: { expId: 'EXP-02', drug: '粗品样品 B', totalMass: 4800, dose: 50, n: 48, avg: 87.2, bestCoord: 'E03', bestCombo: '组合 C', bestRecipe: 'IPA : Water = 7 : 3', combos: 3, created: '2024.05.18' } }
   ];
 }
 
@@ -388,6 +388,8 @@ function showArchDetail(id) {
     row('平均纯化率', d.avg != null ? d.avg.toFixed(1) + '%' : '—') +
     row('最佳纯化率', esc(a.best)) +
     row('最佳孔位', d.bestCoord || '—') +
+    row('最佳条件', d.bestCombo || '—') +
+    (d.bestRecipe && d.bestRecipe !== '—' ? row('组合配方', d.bestRecipe) : '') +
     row('条件组合数', d.combos != null ? d.combos + ' 个' : '—') +
     '</div>';
   openSheet(esc(a.name), body);
@@ -404,11 +406,13 @@ function askArchiveExp() {
     var d = new Date(), pd = function (x) { return (x < 10 ? '0' : '') + x; };
     var date = d.getFullYear() + '.' + pd(d.getMonth() + 1) + '.' + pd(d.getDate());
     var done = DB.exp.name;
+    var bwC = comboOf(st.best.combo);
     DB.archives.unshift({
       id: 'ARC-' + (mx + 1), name: done, sub: '96孔板 · ' + date + ' · 已完成',
       best: st.best.purity.toFixed(1) + '%',
       detail: { expId: DB.exp.id, drug: DB.exp.drug, totalMass: DB.exp.totalMass, dose: DB.exp.dose,
-        n: st.n, avg: st.avg, bestCoord: st.best.coord, combos: DB.exp.comboCount, created: date }
+        n: st.n, avg: st.avg, bestCoord: st.best.coord, bestCombo: bwC.name, bestRecipe: bwC.recipe,
+        combos: DB.exp.comboCount, created: date }
     });
     delete DB.exps[DB.exp.id];
     DB.curExp = Object.keys(DB.exps).sort().reverse()[0] || null;
@@ -1363,10 +1367,13 @@ function rgList(q) {
 /* 15 我的 */
 function renderProfile() {
   var st = stats();
-  var best = 0, bestId = '—';
+  var best = 0, bestId = '—', bestTxt = '';
   Object.keys(DB.exps).forEach(function (id) {
-    var s = expStats(DB.exps[id]);
-    if (s.best > best) { best = s.best; bestId = id; }
+    var w = bestWellOf(DB.exps[id]);
+    if (w && w.purity > best) {
+      best = w.purity; bestId = id;
+      bestTxt = esc(w.coord) + ' · ' + esc(comboOf(w.combo).name);
+    }
   });
   $('profile-page').innerHTML =
     '<div class="me-head"><div class="avatar">L</div>' +
@@ -1375,7 +1382,7 @@ function renderProfile() {
     '<div class="stat-row">' +
       '<div class="stat"><div class="v">' + (DB.exp ? DB.exp.comboCount : 0) + '</div><div class="k">试剂组合</div></div>' +
       '<div class="stat"><div class="v">' + DB.reagents.length + '</div><div class="k">试剂条目</div></div>' +
-      '<div class="stat"><div class="v warm">' + (best ? best.toFixed(1) + '%' : '—') + '</div><div class="k">' + esc(bestId) + ' 最佳</div></div>' +
+      '<div class="stat"><div class="v warm">' + (best ? best.toFixed(1) + '%' : '—') + '</div><div class="k">' + esc(bestId) + ' 最佳' + (best ? ' · ' + bestTxt : '') + '</div></div>' +
     '</div>' +
     '<div class="menu">' +
       menuRow('我的实验', '', 's16') +
@@ -1424,16 +1431,27 @@ function menuRow(label, sub, target) {
 }
 
 /* 16 实验总览：进行中 + 已归档，点卡片进入对应实验 */
+function bestWellOf(e) {
+  var bw = null;
+  Object.keys(e.wells).forEach(function (k) {
+    var w = e.wells[k];
+    if (w.done && (!bw || w.purity > bw.purity)) bw = w;
+  });
+  return bw;
+}
 function renderExpOverview() {
   var ids = Object.keys(DB.exps).sort().reverse();
   var ongoing = ids.length ? ids.map(function (id) {
     var e = DB.exps[id], s = expStats(e), cur = id === DB.curExp;
+    var bw = bestWellOf(e), bc = bw ? comboOf(bw.combo) : null;
     return '<div class="exp-ov-row" data-go="s07" data-pickexp="' + id + '">' +
       '<div class="row1"><span class="exp-id">' + esc(e.id) + '</span>' +
       '<span class="exp-name">' + esc(e.name) + '</span>' +
       '<span class="tag run">' + (cur ? '当前' : '进行中') + '</span></div>' +
       '<div class="exp-meta"><span><b>' + s.n + '</b>/96 孔已录入</span>' +
-      '<span>最佳 <b>' + s.best.toFixed(1) + '%</b></span></div>' +
+      (bw ? '<span>最佳 <b>' + bw.purity.toFixed(1) + '%</b> · ' + esc(bw.coord) + '</span>' +
+            '<span>条件 <b>' + esc(bc.name) + '</b></span>' : '<span>最佳 <b>—</b></span>') + '</div>' +
+      (bc && bc.recipe && bc.recipe !== '—' ? '<div class="exp-recipe">' + esc(bc.name) + ' · ' + esc(bc.recipe) + '</div>' : '') +
       '<div class="pbar"><i style="width:' + s.pct.toFixed(1) + '%"></i></div></div>';
   }).join('') : '<p class="hint" style="margin:6px 2px 14px">暂无进行中实验 · 首页「新建实验」开始</p>';
   var archived = DB.archives.length ? DB.archives.map(function (a) {

@@ -412,3 +412,5 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .exp-ov-row .row1{display:flex;align-items:center;gap:8px}
 .exp-ov-row .exp-name{font-size:14px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .exp-ov-row .pbar{margin-top:8px}
+
+.exp-recipe{margin-top:5px;font-size:10.5px;color:var(--ink3);letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
