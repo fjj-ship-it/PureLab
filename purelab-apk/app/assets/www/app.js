@@ -168,6 +168,41 @@ function countUp(el, target, dec, suffix) {
   }
   requestAnimationFrame(step);
 }
+/* v30 分段控件：滑块挤开动效 */
+function segMount(seg) {
+  if (!seg) return;
+  var act = seg.querySelector('.seg-item.active'), thumb = seg.querySelector('.seg-thumb');
+  if (!act || !thumb) return;
+  thumb.style.transition = 'none';
+  thumb.style.width = act.offsetWidth + 'px';
+  thumb.style.transform = 'translateX(' + act.offsetLeft + 'px)';
+  requestAnimationFrame(function () { requestAnimationFrame(function () { seg.classList.add('ready'); }); });
+}
+function segSwitch(seg, item, apply) {
+  var thumb = seg && seg.querySelector('.seg-thumb'), act = seg && seg.querySelector('.seg-item.active');
+  if (!thumb || item === act) { if (apply) apply(); return; }
+  seg.classList.add('ready');
+  thumb.style.width = item.offsetWidth + 'px';
+  thumb.style.transform = 'translateX(' + item.offsetLeft + 'px)';
+  thumb.classList.remove('squeeze'); void thumb.offsetWidth; thumb.classList.add('squeeze');
+  if (act) act.classList.remove('active');
+  item.classList.add('active');
+  setTimeout(apply, 220);
+}
+/* v30 归档卡片：滚动到视口时折叠展开 */
+var foldIO = ('IntersectionObserver' in window) ? new IntersectionObserver(function (entries) {
+  var i = 0;
+  entries.forEach(function (en) {
+    if (!en.isIntersecting) return;
+    var el = en.target, d = i++ * 80;
+    foldIO.unobserve(el);
+    setTimeout(function () { el.classList.add('in'); }, d);
+  });
+}, { rootMargin: '0px 0px -6% 0px', threshold: 0.05 }) : null;
+function observeFold(root) {
+  var els = (root || document).querySelectorAll('.fold-item:not(.in)');
+  els.forEach(function (el) { if (foldIO) foldIO.observe(el); else el.classList.add('in'); });
+}
 function comboOf(id) {
   if (id == null) return { id: '', name: '未分配', recipe: '—', color: '#C1BEB5' };  /* 未分配列 */
   for (var i = 0; i < COMBOS.length; i++) if (COMBOS[i].id === id) return COMBOS[i];
@@ -361,11 +396,12 @@ function renderHome() {
     initCarousel();
   }
   $('home-archive').innerHTML = DB.archives.length ? DB.archives.map(function (a, i) {
-    return '<div class="card arch-row stagger-item" data-archid="' + a.id + '" style="animation-delay:' + Math.min(i * 45, 400) + 'ms"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
+    return '<div class="card arch-row fold-item" data-archid="' + a.id + '"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
       '<div class="arch-name">' + esc(a.name) + '<div class="arch-sub">' + esc(a.sub) + '</div></div>' +
       '<span class="arch-best">最佳 ' + esc(a.best) + '</span>' +
       '<span class="arch-del" data-delarch="' + a.id + '">删除</span></div>';
   }).join('') : '<p class="hint" style="margin:6px 2px">暂无归档实验 · 在 s11 结果页「完成并归档」后自动收录</p>';
+  observeFold($('home-archive'));
   $('home-archive').querySelectorAll('[data-delarch]').forEach(function (el) {
     el.addEventListener('click', function (e) { e.stopPropagation(); askDeleteArch(el.getAttribute('data-delarch')); });
   });
@@ -885,7 +921,7 @@ function renderAssign() {
           save(); renderAssign();
         }
   });
-  var seg = '<div class="seg" style="margin:0 0 10px">' +
+  var seg = '<div class="seg" style="margin:0 0 10px" id="am-seg"><span class="seg-thumb"></span>' +
     '<button class="seg-item' + (auto ? ' active' : '') + '" id="am-auto">自动分配</button>' +
     '<button class="seg-item' + (auto ? '' : ' active') + '" id="am-manual">手动选孔</button></div>';
   var head;
@@ -908,8 +944,9 @@ function renderAssign() {
       '<div class="op-row" style="justify-content:space-between">' + nav + '</div>';
   }
   $('assign-cur').innerHTML = seg + head;
-  $('am-auto').onclick = function () { if (DB.wizard.amode !== 'auto') { DB.wizard.amode = 'auto'; save(); renderAssign(); } };
-  $('am-manual').onclick = function () { if (DB.wizard.amode !== 'manual') { DB.wizard.amode = 'manual'; DB.wizard.cur = 0; save(); renderAssign(); } };
+  segMount($('am-seg'));
+  $('am-auto').onclick = function () { if (DB.wizard.amode !== 'auto') segSwitch($('am-seg'), $('am-auto'), function () { DB.wizard.amode = 'auto'; save(); renderAssign(); }); };
+  $('am-manual').onclick = function () { if (DB.wizard.amode !== 'manual') segSwitch($('am-seg'), $('am-manual'), function () { DB.wizard.amode = 'manual'; DB.wizard.cur = 0; save(); renderAssign(); }); };
   if (!auto) {
     if (cur > 0) $('assign-prev').onclick = function () { DB.wizard.cur--; save(); renderAssign(); window.scrollTo(0, 0); };
     if (cur < sel.length - 1) $('assign-next').onclick = function () { DB.wizard.cur++; save(); renderAssign(); window.scrollTo(0, 0); };
@@ -1075,11 +1112,14 @@ function selWellCount() {
   });
   return n;
 }
-document.querySelectorAll('#batch-seg .seg-item').forEach(function (b) {
+var batchSegEl = $('batch-seg');
+segMount(batchSegEl);
+batchSegEl.querySelectorAll('.seg-item').forEach(function (b) {
   b.addEventListener('click', function () {
-    document.querySelectorAll('#batch-seg .seg-item').forEach(function (x) { x.classList.remove('active'); });
-    b.classList.add('active'); batchMode = b.getAttribute('data-seg');
-    batchSel = {}; batchSelCoords = {}; batchUI();
+    segSwitch(batchSegEl, b, function () {
+      batchMode = b.getAttribute('data-seg');
+      batchSel = {}; batchSelCoords = {}; batchUI();
+    });
   });
 });
 $('b-apply').addEventListener('click', function () {
@@ -1519,7 +1559,7 @@ function renderExpOverview() {
       '<div class="pbar"><i style="width:' + s.pct.toFixed(1) + '%"></i></div></div>';
   }).join('') : '<p class="hint" style="margin:6px 2px 14px">暂无进行中实验 · 首页「新建实验」开始</p>';
   var archived = DB.archives.length ? DB.archives.map(function (a, i) {
-    return '<div class="card arch-row stagger-item" data-archid="' + a.id + '" style="animation-delay:' + Math.min(i * 45, 400) + 'ms"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
+    return '<div class="card arch-row fold-item" data-archid="' + a.id + '"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
       '<div class="arch-name">' + esc(a.name) + '<div class="arch-sub">' + esc(a.sub) + '</div></div>' +
       '<span class="arch-best">最佳 ' + esc(a.best) + '</span>' +
       '<span class="arch-del" data-delarch="' + a.id + '">删除</span></div>';
@@ -1527,6 +1567,7 @@ function renderExpOverview() {
   $('expov-page').innerHTML =
     '<div class="sec-head"><span class="sec-zh">进行中的实验</span><span class="sec-en">ONGOING</span></div>' + ongoing +
     '<div class="sec-head"><span class="sec-zh">已归档实验</span><span class="sec-en">ARCHIVE</span></div>' + archived;
+  observeFold($('expov-page'));
   document.getElementById('expov-page').querySelectorAll('[data-pickexp]').forEach(function (el) {
     el.addEventListener('click', function () {
       var id = el.getAttribute('data-pickexp');

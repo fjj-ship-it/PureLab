@@ -36,16 +36,16 @@ function setVal(page, id, v) {
   });
   await page.waitForTimeout(500);
 
-  /* M1/M2 stagger */
+  /* M1/M2 stagger；M2 自 v30 起归档行改为 fold-item 折叠滚动入场 */
   const stag = await page.evaluate(() => ({
     ov: document.querySelectorAll('#expov-page .stagger-item').length,
-    home: document.querySelectorAll('#home-archive .stagger-item').length,
-    delay: (document.querySelector('#home-archive .stagger-item') || {}).style ? document.querySelector('#home-archive .stagger-item').style.animationDelay : null
+    fold: document.querySelectorAll('#home-archive .fold-item').length,
+    foldedIn: document.querySelectorAll('#home-archive .fold-item.in').length
   }));
   await page.evaluate(() => go('s16')); await page.waitForTimeout(400);
   stag.ov = await page.evaluate(() => document.querySelectorAll('#expov-page .stagger-item').length);
   ok('M1 s16 总览行交错入场', stag.ov >= 4, 'rows=' + stag.ov);
-  ok('M2 归档行交错入场带 delay', stag.home >= 2 && stag.delay !== null, 'home=' + stag.home + ' delay=' + stag.delay);
+  ok('M2 归档行折叠滚动入场', stag.fold >= 2 && stag.foldedIn === stag.fold, 'fold=' + stag.fold + ' in=' + stag.foldedIn);
 
   /* M3 删除归档：leaving 动画 */
   await page.evaluate(() => go('s02')); await page.waitForTimeout(400);

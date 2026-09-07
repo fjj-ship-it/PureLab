@@ -438,3 +438,20 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .chip{transition:transform .16s ease,background .16s ease,color .16s ease}
 .chip.on{animation:chipPop .22s cubic-bezier(.34,1.56,.64,1)}
 @keyframes chipPop{0%{transform:scale(.92)}100%{transform:scale(1)}}
+
+/* ===== v30 分段控件「标签挤开」动效 ===== */
+.seg{position:relative}
+.seg-thumb{position:absolute;left:0;top:3px;bottom:3px;width:0;background:var(--paper);
+  border-radius:8px;box-shadow:var(--shadow);z-index:0;will-change:transform}
+.seg.ready .seg-thumb{transition:transform .34s cubic-bezier(.34,1.45,.5,1),width .34s cubic-bezier(.34,1.45,.5,1)}
+.seg-thumb.squeeze{animation:thumbSqueeze .36s cubic-bezier(.34,1.45,.5,1)}
+@keyframes thumbSqueeze{0%{scale:1 1}38%{scale:1.05 .9}75%{scale:.98 1.04}100%{scale:1 1}}
+.seg-item{position:relative;z-index:1;transition:color .22s ease,transform .16s ease}
+.seg-item:not(.active):active{transform:scale(.94)}
+.seg-item.active{background:transparent;box-shadow:none}
+/* ===== v30 归档卡片「折叠滚动」入场 ===== */
+.fold-item{opacity:0;transform:perspective(900px) rotateX(-26deg) translateY(18px);transform-origin:50% 0;
+  transition:opacity .4s ease,transform .52s cubic-bezier(.22,1.2,.36,1)}
+.fold-item.in{opacity:1;transform:perspective(900px) rotateX(0) translateY(0)}
+/* 折叠卡片删除滑出优先级修正 */
+.fold-item.in.leaving,.fold-item.leaving{transform:translateX(112%);opacity:0}
