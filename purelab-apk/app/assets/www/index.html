@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>PureLab 高通量重结晶实验助手</title>
-<link rel="stylesheet" href="app.css?v=30">
+<link rel="stylesheet" href="app.css?v=31">
 </head>
 <body>
 <div id="app">
@@ -166,9 +166,15 @@
       <div class="sec-head"><span class="sec-zh">孔板预览</span><span class="sec-en">TAP TO RECORD</span></div>
       <div class="plate-card"><div id="plate-mini"></div></div>
       <p class="hint">点击孔位可查看详情与录入数据。</p>
-      <div class="op-row">
-        <button class="text-act" data-go="s08">进入孔板记录</button>
-        <button class="text-act" data-go="s12">分析孔板最佳条件</button>
+      <div class="fab-stack">
+        <button class="fab-sub" data-go="s12">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#C0A381" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.7 4.3L18 9l-4.3 1.7L12 15l-1.7-4.3L6 9l4.3-1.7z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
+          分析最佳条件
+        </button>
+        <button class="fab-main" data-go="s08">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></svg>
+          孔板记录 <i>→</i>
+        </button>
       </div>
     </div>
   </section>
@@ -296,6 +302,6 @@
 
   <div class="toast" id="toast"></div>
 </div>
-<script src="app.js?v=30"></script>
+<script src="app.js?v=31"></script>
 </body>
 </html>

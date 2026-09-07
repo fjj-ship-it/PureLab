@@ -455,3 +455,26 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .fold-item.in{opacity:1;transform:perspective(900px) rotateX(0) translateY(0)}
 /* 折叠卡片删除滑出优先级修正 */
 .fold-item.in.leaving,.fold-item.leaving{transform:translateX(112%);opacity:0}
+
+/* ===== v31 s07 右下角操作按钮组：主 FAB（孔板记录）+ 副玻璃钮（分析最佳条件） ===== */
+#s07 .page{padding-bottom:calc(var(--safe-b) + 132px)}
+.fab-stack{position:fixed;right:18px;bottom:calc(var(--safe-b) + 26px);z-index:12;
+  display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.fab-main{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:600;letter-spacing:.05em;color:var(--bg);
+  padding:14px 22px;border-radius:999px;border:none;cursor:pointer;
+  background:linear-gradient(140deg,#3B483D,#2F3A31 62%,#283129);
+  box-shadow:0 8px 22px rgba(47,58,49,.30),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 2px rgba(0,0,0,.18);
+  transition:transform .18s ease,box-shadow .18s ease}
+.fab-main i{font-style:normal;transition:transform .18s ease}
+.fab-main:active{transform:scale(.95);box-shadow:0 4px 12px rgba(47,58,49,.32)}
+.fab-main:active i{transform:translateX(3px)}
+.fab-sub{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--ink);
+  padding:9px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.6);cursor:pointer;
+  background:linear-gradient(135deg,rgba(255,255,255,.65),rgba(255,255,255,.30) 52%,rgba(216,211,204,.42));
+  backdrop-filter:blur(14px) saturate(1.6);-webkit-backdrop-filter:blur(14px) saturate(1.6);
+  box-shadow:0 5px 16px rgba(47,58,49,.12),inset 0 1px 0 rgba(255,255,255,.8);
+  transition:transform .18s ease}
+.fab-sub:active{transform:scale(.94)}
+.fab-stack .fab-main{animation:fabIn .34s cubic-bezier(.22,.9,.36,1) both}
+.fab-stack .fab-sub{animation:fabIn .34s cubic-bezier(.22,.9,.36,1) .07s both}
+@keyframes fabIn{from{opacity:0;transform:translateY(16px) scale(.88)}to{opacity:1;transform:none}}
