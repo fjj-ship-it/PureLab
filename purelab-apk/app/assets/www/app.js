@@ -206,7 +206,7 @@ function show(id) {
   var r = { s02: renderHome, s03: renderNew, s04: renderCombos, s05: renderAssign, s06: renderConfirm,
             s07: renderRun, s08: renderRecord, s09: renderBatch, s10: renderWell,
             s11: renderResults, s12: renderBest, s13: renderRank,
-            s14: renderReagents, s15: renderProfile };
+            s14: renderReagents, s15: renderProfile, s16: renderExpOverview };
   if (r[id]) r[id]();
   navigatingBack = false;
   window.scrollTo(0, 0);
@@ -1363,17 +1363,22 @@ function rgList(q) {
 /* 15 我的 */
 function renderProfile() {
   var st = stats();
+  var best = 0, bestId = '—';
+  Object.keys(DB.exps).forEach(function (id) {
+    var s = expStats(DB.exps[id]);
+    if (s.best > best) { best = s.best; bestId = id; }
+  });
   $('profile-page').innerHTML =
     '<div class="me-head"><div class="avatar">L</div>' +
       '<div><div class="me-name">LabExplorer</div>' +
       '<div class="me-sub">专注实验操作 · 数据本地留存 · 不做自动推荐</div></div></div>' +
     '<div class="stat-row">' +
-      '<div class="stat"><div class="v">' + DB.exp.comboCount + '</div><div class="k">试剂组合</div></div>' +
+      '<div class="stat"><div class="v">' + (DB.exp ? DB.exp.comboCount : 0) + '</div><div class="k">试剂组合</div></div>' +
       '<div class="stat"><div class="v">' + DB.reagents.length + '</div><div class="k">试剂条目</div></div>' +
-      '<div class="stat"><div class="v warm">' + st.best.purity.toFixed(1) + '%</div><div class="k">' + esc(DB.exp.id) + ' 最佳</div></div>' +
+      '<div class="stat"><div class="v warm">' + (best ? best.toFixed(1) + '%' : '—') + '</div><div class="k">' + esc(bestId) + ' 最佳</div></div>' +
     '</div>' +
     '<div class="menu">' +
-      menuRow('我的实验', '', 's07') +
+      menuRow('我的实验', '', 's16') +
       menuRow('试剂库', '', 's14') +
       '<div class="menu-row" id="m-backup">数据备份<span class="sub">JSON</span><i class="arr">›</i></div>' +
       '<div class="menu-row" id="m-help">帮助与反馈<i class="arr">›</i></div>' +
@@ -1416,6 +1421,42 @@ function renderProfile() {
 function menuRow(label, sub, target) {
   return '<div class="menu-row" data-go="' + target + '">' + label +
          (sub ? '<span class="sub">' + sub + '</span>' : '') + '<i class="arr">›</i></div>';
+}
+
+/* 16 实验总览：进行中 + 已归档，点卡片进入对应实验 */
+function renderExpOverview() {
+  var ids = Object.keys(DB.exps).sort().reverse();
+  var ongoing = ids.length ? ids.map(function (id) {
+    var e = DB.exps[id], s = expStats(e), cur = id === DB.curExp;
+    return '<div class="exp-ov-row" data-go="s07" data-pickexp="' + id + '">' +
+      '<div class="row1"><span class="exp-id">' + esc(e.id) + '</span>' +
+      '<span class="exp-name">' + esc(e.name) + '</span>' +
+      '<span class="tag run">' + (cur ? '当前' : '进行中') + '</span></div>' +
+      '<div class="exp-meta"><span><b>' + s.n + '</b>/96 孔已录入</span>' +
+      '<span>最佳 <b>' + s.best.toFixed(1) + '%</b></span></div>' +
+      '<div class="pbar"><i style="width:' + s.pct.toFixed(1) + '%"></i></div></div>';
+  }).join('') : '<p class="hint" style="margin:6px 2px 14px">暂无进行中实验 · 首页「新建实验」开始</p>';
+  var archived = DB.archives.length ? DB.archives.map(function (a) {
+    return '<div class="card arch-row" data-archid="' + a.id + '"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
+      '<div class="arch-name">' + esc(a.name) + '<div class="arch-sub">' + esc(a.sub) + '</div></div>' +
+      '<span class="arch-best">最佳 ' + esc(a.best) + '</span>' +
+      '<span class="arch-del" data-delarch="' + a.id + '">删除</span></div>';
+  }).join('') : '<p class="hint" style="margin:6px 2px">暂无归档实验</p>';
+  $('expov-page').innerHTML =
+    '<div class="sec-head"><span class="sec-zh">进行中的实验</span><span class="sec-en">ONGOING</span></div>' + ongoing +
+    '<div class="sec-head"><span class="sec-zh">已归档实验</span><span class="sec-en">ARCHIVE</span></div>' + archived;
+  document.getElementById('expov-page').querySelectorAll('[data-pickexp]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      var id = el.getAttribute('data-pickexp');
+      if (id !== DB.curExp) { DB.curExp = id; normalizeDB(); save(); toast('已切换到 ' + id); }
+    });
+  });
+  document.getElementById('expov-page').querySelectorAll('[data-delarch]').forEach(function (el) {
+    el.addEventListener('click', function (e) { e.stopPropagation(); askDeleteArch(el.getAttribute('data-delarch')); });
+  });
+  document.getElementById('expov-page').querySelectorAll('[data-archid]').forEach(function (el) {
+    el.addEventListener('click', function () { showArchDetail(el.getAttribute('data-archid')); });
+  });
 }
 
 /* ---------------- 启动 ---------------- */

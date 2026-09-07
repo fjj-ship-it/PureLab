@@ -405,3 +405,10 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
   background:var(--ink);color:var(--bg);font-size:12.5px;padding:9px 18px;border-radius:999px;
   opacity:0;transition:all .22s;z-index:50;pointer-events:none;max-width:82%;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* s16 实验总览行 */
+.exp-ov-row{padding:13px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.exp-ov-row:active{background:rgba(83,98,83,.06)}
+.exp-ov-row .row1{display:flex;align-items:center;gap:8px}
+.exp-ov-row .exp-name{font-size:14px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.exp-ov-row .pbar{margin-top:8px}
