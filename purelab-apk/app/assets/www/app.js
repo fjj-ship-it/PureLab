@@ -143,6 +143,31 @@ function save() { try { localStorage.setItem('purelab_db', JSON.stringify(DB)); 
 function $(id) { return document.getElementById(id); }
 function esc(s) { return String(s).replace(/[&<>"]/g, function (c) {
   return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+/* v28 动效工具：删除定向滑出（08）+ 数字滚动 */
+function playLeave(el, done) {
+  if (!el) { done(); return; }
+  el.style.maxHeight = el.scrollHeight + 'px';
+  void el.offsetHeight;                       /* 强制回流，让 max-height 过渡生效 */
+  el.style.transform = '';                    /* 清掉轮播内联 transform，让 .leaving 生效 */
+  el.classList.add('leaving');
+  setTimeout(done, 340);
+}
+function countUp(el, target, dec, suffix) {
+  if (!el) return;
+  var from = parseFloat(el.textContent.replace(/[^\d.\-]/g, '')) || 0;
+  if (target == null || isNaN(target) || Math.abs(from - target) < 0.05) {
+    el.textContent = target != null ? target.toFixed(dec) + (suffix || '') : '—';
+    return;
+  }
+  var t0 = performance.now(), dur = 550;
+  function step(t) {
+    var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = (from + (target - from) * e).toFixed(dec) + (suffix || '');
+    if (k < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
 function comboOf(id) {
   if (id == null) return { id: '', name: '未分配', recipe: '—', color: '#C1BEB5' };  /* 未分配列 */
   for (var i = 0; i < COMBOS.length; i++) if (COMBOS[i].id === id) return COMBOS[i];
@@ -335,8 +360,8 @@ function renderHome() {
     $('home-ongoing').innerHTML = '<div class="exp-carousel" id="exp-carousel">' + cards.join('') + '</div>';
     initCarousel();
   }
-  $('home-archive').innerHTML = DB.archives.length ? DB.archives.map(function (a) {
-    return '<div class="card arch-row" data-archid="' + a.id + '"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
+  $('home-archive').innerHTML = DB.archives.length ? DB.archives.map(function (a, i) {
+    return '<div class="card arch-row stagger-item" data-archid="' + a.id + '" style="animation-delay:' + Math.min(i * 45, 400) + 'ms"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
       '<div class="arch-name">' + esc(a.name) + '<div class="arch-sub">' + esc(a.sub) + '</div></div>' +
       '<span class="arch-best">最佳 ' + esc(a.best) + '</span>' +
       '<span class="arch-del" data-delarch="' + a.id + '">删除</span></div>';
@@ -354,10 +379,8 @@ function askDeleteExp(id) {
   openSheet('删除实验', '<p>将删除 <b>' + esc(e.id) + ' ' + esc(e.name) + '</b> 及其全部孔位数据，删除后不可恢复。</p>' +
     '<div class="cta-row"><button class="cta-line" id="delexp-go">确认删除 <i>→</i></button></div>');
   $('delexp-go').onclick = function () {
-    delete DB.exps[id];
-    if (DB.curExp === id) DB.curExp = Object.keys(DB.exps).sort().reverse()[0] || null;
-    normalizeDB(); save(); closeSheet();
-    renderHome(); toast('已删除 ' + id);
+    closeSheet();
+    leaveThenDeleteExp(id);
   };
 }
 /* 删除归档实验（确认弹层） */
@@ -368,9 +391,8 @@ function askDeleteArch(id) {
   openSheet('删除归档', '<p>将删除归档实验 <b>' + esc(a.name) + '</b>，删除后不可恢复。</p>' +
     '<div class="cta-row"><button class="cta-line" id="delarch-go">确认删除 <i>→</i></button></div>');
   $('delarch-go').onclick = function () {
-    DB.archives = DB.archives.filter(function (x) { return x.id !== id; });
-    save(); closeSheet();
-    renderHome(); toast('已删除归档');
+    closeSheet();
+    leaveThenDeleteArch(id);
   };
 }
 /* 归档详情（点击归档行查看） */
@@ -420,6 +442,28 @@ function askArchiveExp() {
     normalizeDB(); save(); closeSheet();
     go('s02'); toast('「' + done + '」已归档');
   };
+}
+/* 删除：先定向滑出（08），动画结束后真正移除 */
+function leaveThenDeleteExp(id) {
+  playLeave(document.querySelector('.exp-card[data-expid="' + id + '"], .exp-ov-row[data-pickexp="' + id + '"]'), function () {
+    delete DB.exps[id];
+    if (DB.curExp === id) DB.curExp = Object.keys(DB.exps).sort().reverse()[0] || null;
+    normalizeDB(); save();
+    renderHome();
+    var ov = document.getElementById('expov-page');
+    if (ov && document.getElementById('s16').classList.contains('active')) renderExpOverview();
+    toast('已删除 ' + id);
+  });
+}
+function leaveThenDeleteArch(id) {
+  playLeave(document.querySelector('.arch-row[data-archid="' + id + '"]'), function () {
+    DB.archives = DB.archives.filter(function (x) { return x.id !== id; });
+    save();
+    renderHome();
+    var ov = document.getElementById('expov-page');
+    if (ov && document.getElementById('s16').classList.contains('active')) renderExpOverview();
+    toast('已删除归档');
+  });
 }
 /* 进行中实验轮播：横向拖拽/滚轮 + 惯性 + 居中磁吸 + 距中心动态缩放/透明度/位移 */
 function initCarousel() {
@@ -943,13 +987,18 @@ $('btn-create').addEventListener('click', function () {
 /* 07 实验详情 */
 function renderRun() {
   var st = stats();
+  var ui = DB._ui = DB._ui || {};
   $('exp-head').innerHTML =
     '<div class="t">' + esc(DB.exp.id) + ' · ' + esc(DB.exp.name) + '</div>' +
     '<div class="s">96孔板 · 进行中 · 待纯化药品：' + esc(DB.exp.drug) + '</div>';
   $('exp-stats').innerHTML =
-    '<div class="stat"><div class="v">' + st.n + '<small>/96 孔</small></div><div class="k">已录入 ' + (st.n / 96 * 100).toFixed(1) + '%</div></div>' +
-    '<div class="stat"><div class="v warm">' + st.best.purity.toFixed(1) + '%</div><div class="k">当前最佳 · ' + st.best.coord + '</div></div>' +
-    '<div class="stat"><div class="v">' + st.avg.toFixed(1) + '%</div><div class="k">平均回收率</div></div>';
+    '<div class="stat"><div class="v"><span id="st-n">' + (ui.runN != null ? ui.runN : st.n) + '</span><small>/96 孔</small></div><div class="k">已录入 ' + (st.n / 96 * 100).toFixed(1) + '%</div></div>' +
+    '<div class="stat"><div class="v warm"><span id="st-best">' + (ui.runBest != null ? ui.runBest.toFixed(1) : st.best.purity.toFixed(1)) + '%</span></div><div class="k">当前最佳 · ' + st.best.coord + '</div></div>' +
+    '<div class="stat"><div class="v"><span id="st-avg">' + (ui.runAvg != null ? ui.runAvg.toFixed(1) : st.avg.toFixed(1)) + '%</span></div><div class="k">平均回收率</div></div>';
+  countUp($('st-n'), st.n, 0);
+  countUp($('st-best'), st.best.purity, 1, '%');
+  countUp($('st-avg'), st.avg, 1, '%');
+  ui.runN = st.n; ui.runBest = st.best.purity; ui.runAvg = st.avg;
   renderPlate($('plate-mini'), 'mini', {
     tap: function (coord) { DB.selWell = coord; save(); go('s10'); }   /* 直达单孔详情，少一跳 */
   });
@@ -1211,6 +1260,7 @@ function wellCommit(w, snap) {
 /* 11 结果总览 */
 function renderResults() {
   var st = stats();
+  var ui = DB._ui = DB._ui || {};
   var buckets = { '<85': 0, '85–90': 0, '90–95': 0, '≥95': 0 };
   completedWells().forEach(function (w) {
     if (w.purity < 85) buckets['<85']++;
@@ -1231,11 +1281,11 @@ function renderResults() {
       '<span class="dist-v">' + a.toFixed(1) + '</span></div>';
   }).join('');
   $('results-page').innerHTML =
-    '<div class="hero dark"><span class="big">' + st.best.purity.toFixed(1) + '%</span>' +
+    '<div class="hero dark"><span class="big" id="res-hero">' + (ui.resHero != null ? ui.resHero.toFixed(1) : st.best.purity.toFixed(1)) + '%</span>' +
       '<span class="who">当前最佳回收率<br><b>' + st.best.coord + '</b>（' + comboOf(st.best.combo).name + '）</span></div>' +
     '<div class="stat-row">' +
-      '<div class="stat"><div class="v">' + st.n + '<small>/96</small></div><div class="k">已录入 ' + (st.n / 96 * 100).toFixed(1) + '%</div></div>' +
-      '<div class="stat"><div class="v">' + st.avg.toFixed(1) + '%</div><div class="k">平均回收率</div></div>' +
+      '<div class="stat"><div class="v"><span id="res-n">' + (ui.resN != null ? ui.resN : st.n) + '</span><small>/96</small></div><div class="k">已录入 ' + (st.n / 96 * 100).toFixed(1) + '%</div></div>' +
+      '<div class="stat"><div class="v"><span id="res-avg">' + (ui.resAvg != null ? ui.resAvg.toFixed(1) : st.avg.toFixed(1)) + '%</span></div><div class="k">平均回收率</div></div>' +
       '<div class="stat"><div class="v">' + (96 - st.n) + '<small> 孔</small></div><div class="k">待录入</div></div>' +
     '</div>' +
     '<div class="sec-head"><span class="sec-zh">回收率分布</span><span class="sec-en">DISTRIBUTION</span></div>' +
@@ -1246,6 +1296,10 @@ function renderResults() {
     '<button class="text-act" data-go="s13">结果排名</button>' +
     '<button class="text-act" id="btn-archive">完成并归档</button></div>';
   var ab = $('btn-archive'); if (ab) ab.onclick = askArchiveExp;
+  countUp($('res-hero'), st.best.purity, 1, '%');
+  countUp($('res-n'), st.n, 0);
+  countUp($('res-avg'), st.avg, 1, '%');
+  ui.resHero = st.best.purity; ui.resN = st.n; ui.resAvg = st.avg;
 }
 
 /* 12 最佳条件 */
@@ -1451,10 +1505,10 @@ function bestWellOf(e) {
 }
 function renderExpOverview() {
   var ids = Object.keys(DB.exps).sort().reverse();
-  var ongoing = ids.length ? ids.map(function (id) {
+  var ongoing = ids.length ? ids.map(function (id, i) {
     var e = DB.exps[id], s = expStats(e), cur = id === DB.curExp;
     var bw = bestWellOf(e), bc = bw ? comboOf(bw.combo) : null;
-    return '<div class="exp-ov-row" data-go="s07" data-pickexp="' + id + '">' +
+    return '<div class="exp-ov-row stagger-item" data-go="s07" data-pickexp="' + id + '" style="animation-delay:' + Math.min(i * 50, 400) + 'ms">' +
       '<div class="row1"><span class="exp-id">' + esc(e.id) + '</span>' +
       '<span class="exp-name">' + esc(e.name) + '</span>' +
       '<span class="tag run">' + (cur ? '当前' : '进行中') + '</span></div>' +
@@ -1464,8 +1518,8 @@ function renderExpOverview() {
       (bc && bc.recipe && bc.recipe !== '—' ? '<div class="exp-recipe">' + esc(bc.name) + ' · ' + esc(bc.recipe) + '</div>' : '') +
       '<div class="pbar"><i style="width:' + s.pct.toFixed(1) + '%"></i></div></div>';
   }).join('') : '<p class="hint" style="margin:6px 2px 14px">暂无进行中实验 · 首页「新建实验」开始</p>';
-  var archived = DB.archives.length ? DB.archives.map(function (a) {
-    return '<div class="card arch-row" data-archid="' + a.id + '"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
+  var archived = DB.archives.length ? DB.archives.map(function (a, i) {
+    return '<div class="card arch-row stagger-item" data-archid="' + a.id + '" style="animation-delay:' + Math.min(i * 45, 400) + 'ms"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
       '<div class="arch-name">' + esc(a.name) + '<div class="arch-sub">' + esc(a.sub) + '</div></div>' +
       '<span class="arch-best">最佳 ' + esc(a.best) + '</span>' +
       '<span class="arch-del" data-delarch="' + a.id + '">删除</span></div>';

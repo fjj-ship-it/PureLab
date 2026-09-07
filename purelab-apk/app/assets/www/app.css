@@ -417,3 +417,24 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 
 .assay-sub{display:block;font-size:9.5px;color:var(--ink3);font-style:normal;font-weight:400;margin-top:2px}
 .rank-assay{font-size:10px;color:var(--ink3);margin-left:6px;white-space:nowrap}
+
+/* ---------------- v28 高级动效（源自 B站 SPT 10 种高级交互） ---------------- */
+/* 屏幕切换：淡入 + 轻微上浮，替代生硬 fade */
+.screen.active{animation:screenIn .28s cubic-bezier(.22,.9,.36,1)}
+@keyframes screenIn{from{opacity:.2;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+/* 底部弹层：弹性曲线（借鉴 06 弹簧/04 回弹） */
+.sheet{transition:transform .34s cubic-bezier(.34,1.35,.5,1)}
+.sheet-mask{transition:opacity .26s ease}
+/* 进度条：弹簧过渡（06 步骤条进度） */
+.pbar i{transition:width .55s cubic-bezier(.3,1.15,.5,1)}
+/* 列表交错入场（03 staggered） */
+.stagger-item{animation:rowIn .34s cubic-bezier(.22,.9,.36,1) both}
+@keyframes rowIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+/* 删除定向滑出（08 directed dismissal）：滑出 + 高度塌缩 */
+.leaving{overflow:hidden;transition:transform .3s cubic-bezier(.5,0,.75,.4),opacity .3s,max-height .3s .06s,margin .3s .06s,padding .3s .06s;
+  transform:translateX(112%);opacity:0;max-height:0 !important;margin:0 !important;padding-top:0 !important;padding-bottom:0 !important;pointer-events:none}
+.leaving.up{transform:translateY(-40%)}
+/* 选中 chip 弹一下（10 标签选择） */
+.chip{transition:transform .16s ease,background .16s ease,color .16s ease}
+.chip.on{animation:chipPop .22s cubic-bezier(.34,1.56,.64,1)}
+@keyframes chipPop{0%{transform:scale(.92)}100%{transform:scale(1)}}

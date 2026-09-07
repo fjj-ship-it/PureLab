@@ -65,10 +65,10 @@ function rec(id, name, ok, detail) { log.push({ id, name, ok }); console.log(`[$
     document.querySelector('[data-delarch="ARC-1"]').click();
     return document.getElementById('sheet').classList.contains('show');
   }); await wait(200);
-  await page.evaluate(() => document.getElementById('delarch-go').click()); await wait(300);
+  await page.evaluate(() => document.getElementById('delarch-go').click()); await wait(600);
   const d5 = await db();
   await page.evaluate(() => document.querySelector('[data-delarch="ARC-2"]').click()); await wait(200);
-  await page.evaluate(() => document.getElementById('delarch-go').click()); await wait(300);
+  await page.evaluate(() => document.getElementById('delarch-go').click()); await wait(600);
   const archEmpty = await page.evaluate(() => document.getElementById('home-archive').textContent);
   rec('D5', '归档删除：逐个移除并可清空', d5a && d5.archives.length === 1 && d5.archives[0].id === 'ARC-2' && /暂无归档实验/.test(archEmpty),
     'sheet=' + d5a + ' left=' + JSON.stringify(d5.archives));
