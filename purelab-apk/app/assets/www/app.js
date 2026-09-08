@@ -260,7 +260,7 @@ function closeSheet() {
 $('sheet-mask').addEventListener('click', closeSheet);
 
 /* ---------------- 路由（页面栈，供安卓返回键使用） ---------------- */
-var stack = ['s01'];
+var stack = ['s02'];
 function show(id) {
   document.querySelectorAll('.screen').forEach(function (s) { s.classList.remove('active'); });
   $(id).classList.add('active');
@@ -1017,7 +1017,7 @@ $('btn-create').addEventListener('click', function () {
   DB.curExp = exp.id;
   DB.exp = exp; DB.wells = exp.wells; DB.ops = exp.ops; DB.selWell = null;
   save(); toast('实验 ' + nid + ' 已创建 · ' + nAssign + ' 孔待录入');
-  stack = ['s01', 's02', 's07'];            /* 清空向导栈：返回键回工作台 */
+  stack = ['s02', 's07'];            /* 清空向导栈：返回键回工作台 */
   show('s07');
 });
 
@@ -1584,21 +1584,4 @@ function renderExpOverview() {
 
 /* ---------------- 启动 ---------------- */
 renderHome();
-show('s01');
-/* v32 启动页衔接：2.6s 自动淡出进入主界面，点击可跳过 */
-(function () {
-  var launched = false;
-  function enter() {
-    if (launched || stack[stack.length - 1] !== 's01') return;
-    launched = true;
-    var s1 = $('s01');
-    s1.classList.add('launch-out');
-    setTimeout(function () {
-      stack = ['s02'];            /* 启动页不留在返回栈：主界面按返回键直接退出 */
-      show('s02');
-      s1.classList.remove('launch-out');
-    }, 380);
-  }
-  var t = setTimeout(enter, 2600);
-  $('launch-tap').addEventListener('click', function () { clearTimeout(t); enter(); });
-})();
+show('s02');
