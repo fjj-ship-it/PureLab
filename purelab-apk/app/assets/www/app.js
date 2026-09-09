@@ -137,7 +137,10 @@ var DB;
 try { DB = JSON.parse(localStorage.getItem('purelab_db')) || freshDB(); if (DB) delete DB._ui; }
 catch (e) { DB = freshDB(); }
 normalizeDB();
-function save() { try { localStorage.setItem('purelab_db', JSON.stringify(DB, function (k, v) { return k === '_ui' ? undefined : v; })); } catch (e) {} }
+function save() {
+  try { localStorage.setItem('purelab_db', JSON.stringify(DB, function (k, v) { return k === '_ui' ? undefined : v; })); }
+  catch (e) { toast('存储空间不足，最新改动可能未保存'); }
+}
 
 /* ---------------- 工具 ---------------- */
 function $(id) { return document.getElementById(id); }
@@ -1186,7 +1189,8 @@ function renderWell() {
     '</div>' +
     '<p class="hint">回收率 = 产出量 ÷ 投入量 × 100%（称重自动计算）；纯度需 HPLC 等仪器实测，可留空。</p>' +
     '<div class="sec-head"><span class="sec-zh">备注</span><span class="sec-en">NOTE</span></div>' +
-    '<div class="card note-card"><textarea id="w-note" rows="2" placeholder="填写备注，可留空">' + esc(w.note || '') + '</textarea></div>' +
+    '<div class="card note-card"><textarea id="w-note" rows="2" placeholder="填写备注，可留空">' + esc(w.note || '') + '</textarea>' +
+      '<div class="ph-grid" id="w-photos"></div></div>' +
     '<div class="sec-head"><span class="sec-zh">操作记录</span><span class="sec-en">TIMELINE</span></div>' +
     '<div class="card tl">' + (ops.length ? ops.map(function (o) {
       return '<div class="tl-row"><div class="tl-t">' + esc(o.t) + '</div><div class="tl-d">' + esc(o.d) + '</div></div>';
@@ -1194,6 +1198,76 @@ function renderWell() {
   $('well-nav-bar').innerHTML = wellNavHTML(w.coord);
   bindWellNav(w);
   bindWellEdits(w);
+  bindWellPhotos(w);
+}
+/* v34 备注·孔位图片：从相册选图（压缩存 dataURL，每孔最多 4 张） */
+function wellPhotosHTML(w) {
+  var ps = w.photos || [];
+  var tiles = ps.map(function (src, i) {
+    return '<div class="ph-tile"><img src="' + src + '" data-phview="' + i + '" alt="" draggable="false">' +
+      '<span class="ph-del" data-phdel="' + i + '">×</span></div>';
+  }).join('');
+  var add = ps.length < 4
+    ? '<label class="ph-add">＋<span>添加图片</span><input type="file" id="w-photo-in" accept="image/*" multiple hidden></label>'
+    : '';
+  return tiles + add + (ps.length ? '<div class="ph-hint">点击图片放大查看 · 最多 4 张</div>' : '');
+}
+function bindWellPhotos(w) {
+  var grid = $('w-photos'); if (!grid) return;
+  grid.innerHTML = wellPhotosHTML(w);
+  grid.querySelectorAll('[data-phdel]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var i = +el.getAttribute('data-phdel');
+      (w.photos || []).splice(i, 1); save(); renderWell(); toast('已删除图片');
+    });
+  });
+  grid.querySelectorAll('[data-phview]').forEach(function (img) {
+    img.addEventListener('click', function () { openPhotoViewer(img.src); });
+  });
+  var input = $('w-photo-in');
+  if (input) input.addEventListener('change', function () {
+    var files = Array.prototype.slice.call(input.files || []);
+    if (!files.length) return;
+    w.photos = w.photos || [];
+    var room = 4 - w.photos.length;
+    if (room <= 0) { toast('每孔最多 4 张图片'); return; }
+    var pick = files.slice(0, room), done = 0, added = 0;
+    pick.forEach(function (f) {
+      compressPhoto(f, function (dataUrl) {
+        if (dataUrl) { w.photos.push(dataUrl); added++; }
+        if (++done === pick.length) {
+          save();
+          if (added) { toast('已添加 ' + added + ' 张图片'); renderWell(); }
+        }
+      });
+    });
+  });
+}
+function compressPhoto(file, cb) {
+  var fr = new FileReader();
+  fr.onload = function () {
+    var img = new Image();
+    img.onload = function () {
+      var MAX = 640, k = Math.min(1, MAX / Math.max(img.width, img.height));
+      var cv = document.createElement('canvas');
+      cv.width = Math.max(1, Math.round(img.width * k));
+      cv.height = Math.max(1, Math.round(img.height * k));
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      cb(cv.toDataURL('image/jpeg', 0.6));
+    };
+    img.onerror = function () { toast('图片读取失败'); cb(null); };
+    img.src = fr.result;
+  };
+  fr.onerror = function () { toast('图片读取失败'); cb(null); };
+  fr.readAsDataURL(file);
+}
+function openPhotoViewer(src) {
+  var ov = document.createElement('div');
+  ov.className = 'photo-viewer';
+  ov.innerHTML = '<img src="' + src + '" alt="">';
+  ov.addEventListener('click', function () { document.body.removeChild(ov); });
+  document.body.appendChild(ov);
 }
 /* 底部上一孔/下一孔直达（A1→H12 顺序） */
 function wellSeq() {

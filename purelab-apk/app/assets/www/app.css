@@ -465,3 +465,22 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .fab-stack .fab-main{animation:fabIn .34s cubic-bezier(.22,.9,.36,1) both}
 .fab-stack .fab-sub{animation:fabIn .34s cubic-bezier(.22,.9,.36,1) .07s both}
 @keyframes fabIn{from{opacity:0;transform:translateY(16px) scale(.88)}to{opacity:1;transform:none}}
+
+/* ===== v34 备注·孔位图片（相册上传） ===== */
+.ph-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.ph-tile{position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;
+  border:1px solid var(--line);flex:none}
+.ph-tile img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer}
+.ph-del{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;
+  background:rgba(47,58,49,.75);color:#fff;font-size:12px;line-height:18px;text-align:center;cursor:pointer}
+.ph-add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  width:64px;height:64px;border:1px dashed var(--line);border-radius:10px;
+  color:var(--ink3);font-size:18px;cursor:pointer;flex:none}
+.ph-add span{font-size:10px;letter-spacing:.05em}
+.ph-add:active{transform:scale(.94)}
+.ph-hint{font-size:10px;color:var(--ink3);margin-top:8px;width:100%}
+.photo-viewer{position:fixed;inset:0;background:rgba(24,28,25,.93);z-index:999;
+  display:flex;align-items:center;justify-content:center;cursor:zoom-out;animation:viewerIn .2s ease}
+.photo-viewer img{max-width:94vw;max-height:88vh;object-fit:contain;border-radius:8px;
+  box-shadow:0 10px 40px rgba(0,0,0,.4)}
+@keyframes viewerIn{from{opacity:0}to{opacity:1}}
