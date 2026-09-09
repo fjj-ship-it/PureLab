@@ -126,7 +126,9 @@ function normalizeDB() {
   if (!DB.deletedCombos) DB.deletedCombos = [];
   if (!DB.wizard) DB.wizard = { sel: {}, assign: null };
   if (!DB.wizard.tempSel) DB.wizard.tempSel = {};               /* v36 老数据兼容 */
+  if (!DB.wizard.concSel) DB.wizard.concSel = {};               /* v37 老数据兼容 */
   if (!DB.tempLevels) DB.tempLevels = ['60℃', '70℃', '冰浴'];   /* v36 温度维度水平库 */
+  if (!DB.concLevels) DB.concLevels = ['10 mg/mL', '20 mg/mL', '40 mg/mL'];  /* v37 浓度维度水平库 */
   if (!DB.archives) DB.archives = [               /* 归档实验（可删除，点击行可看详情） */
     { id: 'ARC-1', name: '溶解度粗测', sub: '96孔板 · 2024.06 · 已完成', best: '92.1%',
       detail: { expId: 'EXP-01', drug: '粗品样品 A', totalMass: 9600, dose: 100, n: 96, avg: 88.4, bestCoord: 'C07', bestCombo: '组合 B', bestRecipe: 'EA : MeOH = 1 : 2', combos: 5, created: '2024.06.02' } },
@@ -226,13 +228,14 @@ function stats() {
   return { n: n, best: best || { coord: '—', combo: 'A', purity: 0, input: 0, output: 0, done: false }, avg: n ? sum / n : 0 };
 }
 /* 全新实验孔板：按逐孔分配表落组合，未分配孔 combo 为空（不可录入），统一投入量 */
-function freshEmptyWells(dose, wellAssign, assignTemp) {
+function freshEmptyWells(dose, wellAssign, assignTemp, assignConc) {
   var wells = {};
   ROWS.forEach(function (row) {
     for (var c = 1; c <= 12; c++) {
       var coord = row + c;
-      var t = assignTemp && assignTemp[coord];
-      wells[coord] = { coord: coord, row: row, col: c, combo: (wellAssign && wellAssign[coord]) || null, temp: t || null, done: false, input: dose };
+      wells[coord] = { coord: coord, row: row, col: c, combo: (wellAssign && wellAssign[coord]) || null,
+        temp: (assignTemp && assignTemp[coord]) || null, conc: (assignConc && assignConc[coord]) || null,
+        done: false, input: dose };
     }
   });
   return wells;
@@ -455,6 +458,7 @@ function showArchDetail(id) {
     row('最佳孔位', d.bestCoord || '—') +
     row('最佳条件', d.bestCombo || '—') +
     (d.bestTemp ? row('结晶温度', d.bestTemp) : '') +
+    (d.bestConc ? row('浓度', d.bestConc) : '') +
     (d.bestRecipe && d.bestRecipe !== '—' ? row('组合配方', d.bestRecipe) : '') +
     row('条件组合数', d.combos != null ? d.combos + ' 个' : '—') +
     '</div>';
@@ -478,7 +482,7 @@ function askArchiveExp() {
       best: st.best.purity.toFixed(1) + '%',
       detail: { expId: DB.exp.id, drug: DB.exp.drug, totalMass: DB.exp.totalMass, dose: DB.exp.dose,
         n: st.n, avg: st.avg, bestCoord: st.best.coord, bestCombo: bwC.name, bestRecipe: bwC.recipe,
-        bestTemp: st.best.temp || null,
+        bestTemp: st.best.temp || null, bestConc: st.best.conc || null,
         combos: DB.exp.comboCount, created: date }
     });
     delete DB.exps[DB.exp.id];
@@ -676,7 +680,7 @@ function buildAssign(ids) {
   return m;
 }
 function renderCombos() {
-  if (!navigatingBack) DB.wizard = { sel: {}, assign: null, assignTemp: null, tempSel: {}, cur: 0, ctab: 'combo' };  /* 每次进入向导默认全不选 */
+  if (!navigatingBack) DB.wizard = { sel: {}, assign: null, assignTemp: null, assignConc: null, tempSel: {}, concSel: {}, cur: 0, ctab: 'combo' };  /* 每次进入向导默认全不选 */
   navigatingBack = false;
   renderCondSeg();
   renderCondTab();
@@ -702,36 +706,48 @@ function renderCondTab() {
   var tab = DB.wizard.ctab || 'combo';
   $('panel-combo').style.display = tab === 'combo' ? '' : 'none';
   $('panel-temp').style.display = tab === 'temp' ? '' : 'none';
-  if (tab === 'combo') renderComboList(); else renderTempList();
+  $('panel-conc').style.display = tab === 'conc' ? '' : 'none';
+  if (tab === 'combo') renderComboList();
+  else if (tab === 'temp') renderTempList();
+  else renderConcList();
 }
-/* 温度维度：水平列表勾选 / 新建 / 删除 */
-function selTemps() {
-  return (DB.tempLevels || []).filter(function (t) { return DB.wizard.tempSel[t]; });
-}
-function renderTempList() {
-  var list = DB.tempLevels || [];
-  $('temp-count').textContent = list.length + ' 档 · 已选 ' + Object.keys(DB.wizard.tempSel || {}).length;
-  $('temp-list').innerHTML = list.length ? list.map(function (t) {
-    var on = !!DB.wizard.tempSel[t];
-    return '<div class="card combo-card' + (on ? ' sel' : '') + '" data-t="' + esc(t) + '">' +
+/* 水平维度通用渲染（温度、浓度结构一致，只换数据源） */
+function renderLevelList(listKey, selKey, redraw, listEl, countEl, badge, unitHint) {
+  var levels = DB[listKey] || [];
+  var sel = DB.wizard[selKey] || (DB.wizard[selKey] = {});
+  countEl.textContent = levels.length + ' 档 · 已选 ' + Object.keys(sel).length;
+  listEl.innerHTML = levels.length ? levels.map(function (v) {
+    var on = !!sel[v];
+    return '<div class="card combo-card' + (on ? ' sel' : '') + '" data-lv="' + esc(v) + '">' +
       '<span class="combo-check' + (on ? ' on' : '') + '"></span>' +
-      '<span class="combo-badge" style="background:#C0A38122;border:1px solid #C0A38155">℃</span>' +
-      '<div class="combo-main"><div class="combo-name">' + esc(t) + '</div></div>' +
-      '<span class="combo-act del" data-tdel="' + esc(t) + '">删除</span></div>';
-  }).join('') : '<p class="hint" style="margin:6px 2px">暂无温度水平，点下方「新建温度水平」创建。</p>';
-  $('temp-list').querySelectorAll('.combo-card').forEach(function (el) {
+      '<span class="combo-badge" style="background:#C0A38122;border:1px solid #C0A38155">' + badge + '</span>' +
+      '<div class="combo-main"><div class="combo-name">' + esc(v) + '</div></div>' +
+      '<span class="combo-act del" data-lvdel="' + esc(v) + '">删除</span></div>';
+  }).join('') : '<p class="hint" style="margin:6px 2px">暂无' + unitHint + '水平，点下方新建。</p>';
+  listEl.querySelectorAll('.combo-card').forEach(function (el) {
     el.onclick = function (e) {
-      if (e.target.closest('[data-tdel]')) {
-        var t = el.getAttribute('data-t');
-        DB.tempLevels = DB.tempLevels.filter(function (x) { return x !== t; });
-        delete DB.wizard.tempSel[t];
-        save(); renderTempList(); return;
+      var v = el.getAttribute('data-lv');
+      if (e.target.closest('[data-lvdel]')) {
+        DB[listKey] = (DB[listKey] || []).filter(function (x) { return x !== v; });
+        delete sel[v];
+        save(); redraw(); return;
       }
-      var tv = el.getAttribute('data-t');
-      if (DB.wizard.tempSel[tv]) delete DB.wizard.tempSel[tv]; else DB.wizard.tempSel[tv] = true;
-      save(); renderTempList();
+      if (sel[v]) delete sel[v]; else sel[v] = true;
+      save(); redraw();
     };
   });
+}
+function selTemps() {
+  return (DB.tempLevels || []).filter(function (t) { return DB.wizard.tempSel && DB.wizard.tempSel[t]; });
+}
+function selConcs() {
+  return (DB.concLevels || []).filter(function (c) { return DB.wizard.concSel && DB.wizard.concSel[c]; });
+}
+function renderTempList() {
+  renderLevelList('tempLevels', 'tempSel', renderTempList, $('temp-list'), $('temp-count'), '℃', '温度');
+}
+function renderConcList() {
+  renderLevelList('concLevels', 'concSel', renderConcList, $('conc-list'), $('conc-count'), 'mg', '浓度');
 }
 /* 纯重绘（勾选切换后调用，不重置状态） */
 function renderComboList() {
@@ -848,6 +864,29 @@ function comboDetail(cid) {
     '<div class="cta-row"><button class="cta-line" id="cd-del">删除此组合 <i>→</i></button></div>');
   $('cd-del').onclick = function () { closeSheet(); askDelete(cid); };
 }
+/* v37 新建浓度水平：输入如 30 mg/mL，去重入库 */
+$('conc-add').addEventListener('click', function () {
+  openSheet('新建浓度水平',
+    '<div class="frow" style="padding:6px 0"><span class="flabel">浓度档位</span>' +
+    '<input id="new-conc" placeholder="如 30 mg/mL" style="text-align:left;font-weight:600"></div>' +
+    '<div class="op-row" style="flex-wrap:wrap;gap:8px">' +
+      ['5 mg/mL', '15 mg/mL', '30 mg/mL', '60 mg/mL', '80 mg/mL'].map(function (p) {
+        return '<button class="chip" data-cp="' + p + '">' + p + '</button>';
+      }).join('') + '</div>' +
+    '<div class="cta-row"><button class="cta-line" id="conc-save">保存 <i>→</i></button></div>');
+  $('new-conc').focus();
+  $('sheet-body').querySelectorAll('[data-cp]').forEach(function (b) {
+    b.onclick = function () { $('new-conc').value = b.getAttribute('data-cp'); };
+  });
+  $('conc-save').onclick = function () {
+    var v = ($('new-conc').value || '').trim();
+    if (!v) { toast('请输入浓度档位名'); return; }
+    if (DB.concLevels.indexOf(v) >= 0) { toast('该浓度水平已存在'); return; }
+    DB.concLevels.push(v); save(); closeSheet(); renderConcList();
+    toast('已添加 ' + v);
+  };
+});
+
 /* v36 新建温度水平：输入档位名（如 65℃ / 冰浴），去重入库 */
 $('temp-add').addEventListener('click', function () {
   openSheet('新建温度水平',
@@ -977,26 +1016,33 @@ function countCombo(cid) {
   Object.keys(DB.wizard.assign).forEach(function (k) { if (DB.wizard.assign[k] === cid) n++; });
   return n;
 }
-/* v36 条件配对：combo 外层 × temp 内层（如 A-60℃、A-70℃、B-60℃…），温度未选则为纯组合 */
+/* v37 条件配对：combo 外层 × temp 中层 × conc 内层（如 A-60℃-10、A-60℃-20、A-70℃-10…） */
 function condPairs() {
-  var sel = selIds(), temps = selTemps();
+  var sel = selIds(), temps = selTemps(), concs = selConcs();
   var pairs = [];
   sel.forEach(function (id) {
-    (temps.length ? temps : [null]).forEach(function (t) { pairs.push({ id: id, t: t }); });
+    (temps.length ? temps : [null]).forEach(function (t) {
+      (concs.length ? concs : [null]).forEach(function (c) { pairs.push({ id: id, t: t, c: c }); });
+    });
   });
   return pairs;
 }
 function autoFillRows() {
   var m = {}, pairs = condPairs();
-  DB.wizard.assignTemp = {};
-  if (pairs.length > ROWS.length) toast('组合 × 温度共 ' + pairs.length + ' 行，超过 8 行，只排前 ' + ROWS.length + ' 行');
+  DB.wizard.assignTemp = {}; DB.wizard.assignConc = {};
+  if (pairs.length > ROWS.length) toast('组合 × 温度 × 浓度共 ' + pairs.length + ' 行，超过 8 行，只排前 ' + ROWS.length + ' 行');
   pairs.slice(0, ROWS.length).forEach(function (p, i) {
     for (var c = 1; c <= 12; c++) {
-      m[ROWS[i] + c] = p.id;
-      if (p.t) DB.wizard.assignTemp[ROWS[i] + c] = p.t;
+      var coord = ROWS[i] + c;
+      m[coord] = p.id;
+      if (p.t) DB.wizard.assignTemp[coord] = p.t;
+      if (p.c) DB.wizard.assignConc[coord] = p.c;
     }
   });
   return m;
+}
+function condLabel(p) {
+  return comboOf(p.id).name + (p.t ? ' · ' + p.t : '') + (p.c ? ' · ' + p.c : '');
 }
 function renderAssign() {
   var sel = selIds();
@@ -1006,13 +1052,16 @@ function renderAssign() {
   if (auto) { DB.wizard.assign = autoFillRows(); save(); }   /* 自动模式：按「组合×温度」逐行铺满 */
   if (!DB.wizard.assign) DB.wizard.assign = {};
   if (!DB.wizard.assignTemp) DB.wizard.assignTemp = {};
+  if (!DB.wizard.assignConc) DB.wizard.assignConc = {};
   var pairs = condPairs();
   if (DB.wizard.cur == null || DB.wizard.cur >= pairs.length) DB.wizard.cur = 0;
-  var cur = DB.wizard.cur, p = pairs[cur], cid = p.id, ct = p.t, cm = comboOf(cid);
-  function countPair(pid, t) {
+  var cur = DB.wizard.cur, p = pairs[cur], cid = p.id, ct = p.t, cc = p.c, cm = comboOf(cid);
+  function countPair(pid, t, c) {
     var n = 0;
     Object.keys(DB.wizard.assign).forEach(function (k) {
-      if (DB.wizard.assign[k] === pid && (DB.wizard.assignTemp[k] || null) === (t || null)) n++;
+      if (DB.wizard.assign[k] === pid &&
+          (DB.wizard.assignTemp[k] || null) === (t || null) &&
+          (DB.wizard.assignConc[k] || null) === (c || null)) n++;
     });
     return n;
   }
@@ -1022,12 +1071,14 @@ function renderAssign() {
       ? function () { toast('自动分配按行落孔 · 点「手动选孔」可自定义'); }
       : function (coord) {
           var owner = DB.wizard.assign[coord];
-          if (owner === cid && (DB.wizard.assignTemp[coord] || null) === (ct || null)) {
-            delete DB.wizard.assign[coord]; delete DB.wizard.assignTemp[coord];
+          if (owner === cid && (DB.wizard.assignTemp[coord] || null) === (ct || null) &&
+              (DB.wizard.assignConc[coord] || null) === (cc || null)) {
+            delete DB.wizard.assign[coord]; delete DB.wizard.assignTemp[coord]; delete DB.wizard.assignConc[coord];
           } else if (owner) { toast('该孔位已分配给 ' + comboOf(owner).name); return; }
           else {
             DB.wizard.assign[coord] = cid;
             if (ct) DB.wizard.assignTemp[coord] = ct; else delete DB.wizard.assignTemp[coord];
+            if (cc) DB.wizard.assignConc[coord] = cc; else delete DB.wizard.assignConc[coord];
           }
           save(); renderAssign();
         }
@@ -1037,14 +1088,15 @@ function renderAssign() {
     '<button class="seg-item' + (auto ? '' : ' active') + '" id="am-manual">手动选孔</button></div>';
   var head;
   if (auto) {
-    var temps = selTemps();
+    var temps = selTemps(), concs = selConcs();
     head = '<div class="card assign-head">' +
       '<span class="combo-badge" style="background:var(--ink);color:var(--bg)">A</span>' +
-      '<div class="combo-main"><div class="combo-name">自动分配 · 每种「组合 × 温度」占满一行</div>' +
-      '<div class="combo-recipe">' + sel.length + ' 种组合' + (temps.length ? ' × ' + temps.length + ' 个温度' : '') +
+      '<div class="combo-main"><div class="combo-name">自动分配 · 每种条件组合占满一行</div>' +
+      '<div class="combo-recipe">' + sel.length + ' 种组合' +
+      (temps.length ? ' × ' + temps.length + ' 温度' : '') + (concs.length ? ' × ' + concs.length + ' 浓度' : '') +
       ' = ' + pairs.length + ' 行 × 12 孔 = ' + Math.min(pairs.length, ROWS.length) * 12 + ' 孔</div></div></div>';
   } else {
-    var condName = cm.name + (ct ? ' · ' + ct : '');
+    var condName = cm.name + (ct ? ' · ' + ct : '') + (cc ? ' · ' + cc : '');
     var nav = '<span class="assign-pos">' + (cur + 1) + ' / ' + pairs.length + '</span>';
     if (cur > 0) nav += '<button class="text-act" id="assign-prev">‹ 上一条件</button>';
     if (cur < pairs.length - 1) nav += '<button class="text-act" id="assign-next">下一条件 ›</button>';
@@ -1053,7 +1105,7 @@ function renderAssign() {
         '<span class="combo-badge" style="background:' + cm.color + '22;border:1px solid ' + cm.color + '55">' + String.fromCharCode(65 + cur) + '</span>' +
         '<div class="combo-main"><div class="combo-name">正在分配 · ' + esc(condName) + '</div>' +
         '<div class="combo-recipe">' + esc(cm.recipe) + '</div></div>' +
-        '<span class="assign-count">' + countPair(cid, ct) + ' 孔</span>' +
+        '<span class="assign-count">' + countPair(cid, ct, cc) + ' 孔</span>' +
       '</div>' +
       '<div class="op-row" style="justify-content:space-between">' + nav + '</div>';
   }
@@ -1065,11 +1117,11 @@ function renderAssign() {
     if (cur > 0) $('assign-prev').onclick = function () { DB.wizard.cur--; save(); renderAssign(); window.scrollTo(0, 0); };
     if (cur < pairs.length - 1) $('assign-next').onclick = function () { DB.wizard.cur++; save(); renderAssign(); window.scrollTo(0, 0); };
   }
-  var temps = selTemps();
-  $('legend-config').innerHTML = (temps.length
+  var temps = selTemps(), concs = selConcs(), multi = temps.length || concs.length;
+  $('legend-config').innerHTML = (multi
     ? pairs.slice(0, ROWS.length).map(function (pp) {
         var c = comboOf(pp.id);
-        return '<span class="lg"><i style="background:' + c.color + '"></i>' + c.name + ' · ' + pp.t + '（' + countPair(pp.id, pp.t) + ' 孔）</span>';
+        return '<span class="lg"><i style="background:' + c.color + '"></i>' + esc(condLabel(pp)) + '（' + countPair(pp.id, pp.t, pp.c) + ' 孔）</span>';
       })
     : sel.map(function (id) {
         var c = comboOf(id);
@@ -1077,8 +1129,8 @@ function renderAssign() {
       })
   ).join('') + '<span class="lg"><i style="border:1px dashed var(--line);background:transparent"></i>未分配</span>';
   $('assign-note').textContent = auto
-    ? '每种「组合 × 温度」默认占满一整行（12 孔）；需要自定义不同孔位个数，请切到「手动选孔」。'
-    : '点击孔位即为当前条件（组合' + (temps.length ? ' × 温度' : '') + '）选孔（可连续点选/取消）；点「下一条件」继续配置。';
+    ? '每种条件组合默认占满一整行（12 孔）；需要自定义不同孔位个数，请切到「手动选孔」。'
+    : '点击孔位即为当前条件（组合' + (temps.length ? ' × 温度' : '') + (concs.length ? ' × 浓度' : '') + '）选孔（可连续点选/取消）；点「下一条件」继续配置。';
 }
 /* 下一步门禁：每个组合至少分配 1 孔 */
 $('assign-step').addEventListener('click', function () {
@@ -1096,7 +1148,7 @@ function renderConfirm() {
   var name = $('f-name') && $('f-name').value || (DB.exp.name + '-04');
   DB.newName = name;
   var sel = selIds();
-  var temps = selTemps();
+  var temps = selTemps(), concs = selConcs();
   var assign = DB.wizard.assign || {};
   var assigned = Object.keys(assign).length;
   var selNames = sel.map(function (id) { return comboOf(id).name; }).join('、');
@@ -1106,6 +1158,7 @@ function renderConfirm() {
     kv('每孔溶剂投入量', (+$('f-dose').value).toFixed(1) + ' mg') +
     kv('试剂组合', sel.length + ' 个 · ' + esc(selNames)) +
     (temps.length ? kv('温度水平', temps.length + ' 档 · ' + esc(temps.join(' / '))) : '') +
+    (concs.length ? kv('浓度水平', concs.length + ' 档 · ' + esc(concs.join(' / '))) : '') +
     kv('预计占用孔数量', assigned + ' / 96 孔');
   renderPlate($('plate-confirm'), 'mini', { assign: assign });
   $('confirm-legend').innerHTML = legendHTML(sel, null).replace('未录入', '未分配空行');
@@ -1130,14 +1183,15 @@ $('btn-create').addEventListener('click', function () {
   var created = dCreate.getFullYear() + '.' + pd(dCreate.getMonth() + 1) + '.' + pd(dCreate.getDate());
   var assign = DB.wizard.assign || {};
   var assignTemp = DB.wizard.assignTemp || {};
+  var assignConc = DB.wizard.assignConc || {};
   var nAssign = Object.keys(assign).length;
-  var temps = selTemps();
+  var temps = selTemps(), concs = selConcs();
   var exp = {
     id: nid, name: name, plate: '96孔板 · 进行中',
     drug: ($('f-drug').value || '').trim() || '未命名样品',
     totalMass: parseFloat($('f-mass').value) || 0, dose: dose, comboCount: sel.length,
-    tempLevels: temps.slice(),
-    wells: freshEmptyWells(dose, assign, assignTemp), ops: {}, created: created
+    tempLevels: temps.slice(), concLevels: concs.slice(),
+    wells: freshEmptyWells(dose, assign, assignTemp, assignConc), ops: {}, created: created
   };
   DB.exps[exp.id] = exp;                                   /* 加入进行中实验池 */
   DB.curExp = exp.id;
@@ -1156,7 +1210,7 @@ function renderRun() {
     '<div class="s">96孔板 · 进行中 · 待纯化药品：' + esc(DB.exp.drug) + '</div>';
   $('exp-stats').innerHTML =
     '<div class="stat"><div class="v"><span id="st-n">' + (ui.runN != null ? ui.runN : 0) + '</span><small>/96 孔</small></div><div class="k">已录入 ' + (st.n / 96 * 100).toFixed(1) + '%</div></div>' +
-    '<div class="stat"><div class="v warm"><span id="st-best">' + (ui.runBest != null ? ui.runBest.toFixed(1) : '0.0') + '%</span></div><div class="k">当前最佳 · ' + st.best.coord + (st.best.temp ? ' · ' + st.best.temp : '') + '</div></div>' +
+    '<div class="stat"><div class="v warm"><span id="st-best">' + (ui.runBest != null ? ui.runBest.toFixed(1) : '0.0') + '%</span></div><div class="k">当前最佳 · ' + st.best.coord + (st.best.temp ? ' · ' + st.best.temp : '') + (st.best.conc ? ' · ' + st.best.conc : '') + '</div></div>' +
     '<div class="stat"><div class="v"><span id="st-avg">' + (ui.runAvg != null ? ui.runAvg.toFixed(1) : '0.0') + '%</span></div><div class="k">平均回收率</div></div>';
   countUp($('st-n'), st.n, 0);
   countUp($('st-best'), st.best.purity, 1, '%');
@@ -1519,7 +1573,7 @@ function renderResults() {
   }).join('');
   $('results-page').innerHTML =
     '<div class="hero dark"><span class="big" id="res-hero">' + (ui.resHero != null ? ui.resHero.toFixed(1) : '0.0') + '%</span>' +
-      '<span class="who">当前最佳回收率<br><b>' + st.best.coord + '</b>（' + comboOf(st.best.combo).name + (st.best.temp ? ' · ' + st.best.temp : '') + '）</span></div>' +
+      '<span class="who">当前最佳回收率<br><b>' + st.best.coord + '</b>（' + comboOf(st.best.combo).name + (st.best.temp ? ' · ' + st.best.temp : '') + (st.best.conc ? ' · ' + st.best.conc : '') + '）</span></div>' +
     '<div class="stat-row">' +
       '<div class="stat"><div class="v"><span id="res-n">' + (ui.resN != null ? ui.resN : 0) + '</span><small>/96</small></div><div class="k">已录入 ' + (st.n / 96 * 100).toFixed(1) + '%</div></div>' +
       '<div class="stat"><div class="v"><span id="res-avg">' + (ui.resAvg != null ? ui.resAvg.toFixed(1) : '0.0') + '%</span></div><div class="k">平均回收率</div></div>' +
@@ -1559,7 +1613,7 @@ function renderBest() {
       '<div class="pbar" style="margin-top:14px"><i style="width:' + w.purity + '%;background:var(--warm)"></i></div>' +
     '</div>' +
     '<div class="form-card" style="margin-top:14px">' +
-      kv('最佳孔位', w.coord) + (w.temp ? kv('结晶温度', esc(w.temp)) : '') + kv('投入量', w.input.toFixed(1) + ' mg') +
+      kv('最佳孔位', w.coord) + (w.temp ? kv('结晶温度', esc(w.temp)) : '') + (w.conc ? kv('浓度', esc(w.conc)) : '') + kv('投入量', w.input.toFixed(1) + ' mg') +
       kv('产出量', w.output.toFixed(1) + ' mg') + kv('回收率', w.purity.toFixed(1) + '%', true) +
       (w.assay != null ? kv('纯度（HPLC 实测）', w.assay.toFixed(1) + '%') : '') +
     '</div>' +
@@ -1588,7 +1642,7 @@ function renderRank() {
     return '<div class="rank-row" data-well="' + w.coord + '">' +
       '<span class="rank-no' + (i < 3 ? ' top' : '') + '">' + (i + 1) + '</span>' +
       '<span class="rank-coord">' + w.coord + '</span>' +
-      '<span class="rank-combo"><i style="width:9px;height:9px;border-radius:50%;background:' + cm.color + '"></i>' + cm.name + (w.temp ? ' · ' + w.temp : '') + '</span>' +
+      '<span class="rank-combo"><i style="width:9px;height:9px;border-radius:50%;background:' + cm.color + '"></i>' + cm.name + (w.temp ? ' · ' + w.temp : '') + (w.conc ? ' · ' + w.conc : '') + '</span>' +
       '<span class="rank-pct">' + w.purity.toFixed(1) + '%</span>' +
       (w.assay != null ? '<span class="rank-assay">纯 ' + w.assay.toFixed(1) + '%</span>' : '') + '</div>';
   }).join('');
@@ -1603,10 +1657,10 @@ function renderRank() {
   });
 }
 $('btn-export').addEventListener('click', function () {
-  var lines = ['排名,孔位,组合,试剂配比,温度,投入量(mg),产出量(mg),回收率(%),纯度(%)'];
+  var lines = ['排名,孔位,组合,试剂配比,温度,浓度,投入量(mg),产出量(mg),回收率(%),纯度(%)'];
   completedWells().sort(function (a, b) { return b.purity - a.purity; }).forEach(function (w, i) {
     var cm = comboOf(w.combo);
-    lines.push([(i + 1), w.coord, cm.name, '"' + cm.recipe + '"', w.temp || '', w.input.toFixed(1), w.output.toFixed(1), w.purity.toFixed(1), w.assay != null ? w.assay.toFixed(1) : ''].join(','));
+    lines.push([(i + 1), w.coord, cm.name, '"' + cm.recipe + '"', w.temp || '', w.conc || '', w.input.toFixed(1), w.output.toFixed(1), w.assay != null ? w.assay.toFixed(1) : '', w.purity.toFixed(1)].join(','));
   });
   var csv = lines.join('\n');
   openSheet('导出数据 · CSV 预览',

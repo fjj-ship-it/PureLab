@@ -17,7 +17,7 @@ const { chromium } = require('playwright-core');
     const seg = document.getElementById('cond-seg');
     return { seg: !!seg, tabs: [...seg.querySelectorAll('.seg-item')].map(b => b.textContent) };
   });
-  log('C1 cond seg (tabs=' + c1.tabs.join('/') + ')', (c1.seg && c1.tabs.length === 2) ? 'PASS' : 'FAIL');
+  log('C1 cond seg (tabs=' + c1.tabs.join('/') + ')', (c1.seg && c1.tabs.length === 3) ? 'PASS' : 'FAIL');
   // C2 select combos A,B then switch to temp tab
   await page.evaluate(() => {
     DB.wizard.sel = { A: true, B: true };

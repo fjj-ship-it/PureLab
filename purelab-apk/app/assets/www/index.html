@@ -75,6 +75,7 @@
       <div class="seg" id="cond-seg"><span class="seg-thumb"></span>
         <button class="seg-item" data-ctab="combo">试剂组合</button>
         <button class="seg-item" data-ctab="temp">温度</button>
+        <button class="seg-item" data-ctab="conc">浓度</button>
       </div>
       <div id="panel-combo">
         <div class="sec-head"><span class="sec-zh">试剂组合</span><span class="sec-en" id="combo-count">5 组</span></div>
@@ -87,6 +88,12 @@
         <div id="temp-list"></div>
         <button class="ghost-add" id="temp-add">＋ 新建温度水平</button>
         <p class="hint">勾选本次实验要对比的温度档位（可多选、可不选）；自动分配时每种「组合 × 温度」占一整行（12 孔）。列表没有合适的就自己建，比如 65℃、冰浴。</p>
+      </div>
+      <div id="panel-conc" style="display:none">
+        <div class="sec-head"><span class="sec-zh">浓度水平</span><span class="sec-en" id="conc-count">3 档</span></div>
+        <div id="conc-list"></div>
+        <button class="ghost-add" id="conc-add">＋ 新建浓度水平</button>
+        <p class="hint">勾选本次实验要对比的浓度档位（mg/mL，可多选、可不选）；与组合、温度正交组合，例如 2 组合 × 2 温度 × 2 浓度 = 8 行正好铺满一板。</p>
       </div>
       <div class="cta-row"><button class="cta-line" id="combo-next">下一步 <i>→</i></button></div>
     </div>
@@ -286,6 +293,6 @@
 
   <div class="toast" id="toast"></div>
 </div>
-<script src="app.js?v=36b"></script>
+<script src="app.js?v=37"></script>
 </body>
 </html>
