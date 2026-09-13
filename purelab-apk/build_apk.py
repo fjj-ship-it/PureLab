@@ -13,6 +13,7 @@
 产物：
     purelab-apk/PureLab-v{版本名}-release.apk（versionCode 每次构建自增）
 """
+import glob
 import os
 import re
 import subprocess
@@ -79,9 +80,17 @@ def main():
                       "-classpath", PLAT, "-d", OBJ,
                       os.path.join(ROOT, "app", "src", "com", "purelab", "app", "MainActivity.java")])
 
+    # v43 关键修复：必须把**全部** class 文件交给 d8。
+    # 之前只传 MainActivity.class，内部类（MainActivity$1 匿名 WebChromeClient、
+    # $2、$Bridge JS 桥）没进 dex → 启动 onCreate 一 new WebChromeClient 就
+    # NoClassDefFoundError 闪退（所有 APK 从 v2.8.0 起都带此病）。
+    class_files = sorted(glob.glob(os.path.join(OBJ, "com", "purelab", "app", "*.class")))
+    if not class_files:
+        raise SystemExit("javac 未产出任何 class 文件：%s" % OBJ)
+    print("  待打包 class: %d 个 -> %s" % (len(class_files),
+          ", ".join(os.path.basename(c) for c in class_files)))
     run("2/8 d8", [JAVA, "-cp", D8_JAR, "com.android.tools.r8.D8", "--release",
-                   "--lib", PLAT, "--output", BUILD,
-                   os.path.join(OBJ, "com", "purelab", "app", "MainActivity.class")])
+                   "--lib", PLAT, "--output", BUILD] + class_files)
 
     run("3/8 aapt2 compile", [AAPT2, "compile", "--dir", os.path.join(ROOT, "app", "res"),
                               "-o", os.path.join(BUILD, "res.zip")])
