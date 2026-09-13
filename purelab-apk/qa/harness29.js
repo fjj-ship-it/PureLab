@@ -42,11 +42,13 @@ function ok(name, cond, extra) {
   const hasRecipeEl = await page.evaluate(() => !!document.querySelector('.exp-ov-row .exp-recipe'));
   ok('C2b .exp-recipe 元素存在', hasRecipeEl);
 
-  /* C3 s15 最佳统计 */
+  /* C3 s15 最佳统计
+     v2.10 排版修订：「C4 · 组合C」用 .nb 绑成一块（窄列不再出现「…C4·」悬尾分隔符），
+     「最佳」后面的「·」随之并入整块，文本变为「EXP-08 最佳 C4 · 组合C」，正则放宽兼容两种写法 */
   await page.evaluate(() => go('s15'));
   await page.waitForTimeout(300);
   const profTxt = await page.evaluate(() => document.getElementById('profile-page').textContent);
-  ok('C3 s15 最佳带孔位与条件', /96.5%/.test(profTxt) && /EXP-08 最佳 · C4 · 组合C/.test(profTxt), profTxt.match(/EXP-08[^试剂]*/)[0]);
+  ok('C3 s15 最佳带孔位与条件', /96.5%/.test(profTxt) && /EXP-08 最佳\s*·?\s*C4 · 组合C/.test(profTxt), profTxt.match(/EXP-08[^试剂]*/)[0]);
 
   /* C4 归档详情（默认归档带 bestCombo） */
   await page.evaluate(() => { go('s16'); });

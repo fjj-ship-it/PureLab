@@ -57,7 +57,7 @@ function rec(id, name, ok, detail) { log.push({ id, name, ok }); console.log(`[$
   await go('s03'); await wait(300);
   const nameVal = await page.evaluate(() => document.getElementById('f-name').value);
   await page.evaluate(() => { [].find.call(document.querySelectorAll('#s03 [data-back]'), e => e.getClientRects().length > 0).click(); }); await wait();
-  rec('D4', '删光后空池提示，新建页默认名不崩溃', Object.keys(d4.exps).length === 0 && /暂无进行中实验/.test(emptyHint) && /重结晶纯化筛选-01/.test(nameVal),
+  rec('D4', '删光后空池提示，新建页默认名不崩溃（v43 默认名=实验1）', Object.keys(d4.exps).length === 0 && /暂无进行中实验/.test(emptyHint) && /^实验1$/.test(nameVal),
     'keys=' + Object.keys(d4.exps).length + ' hint="' + emptyHint.slice(0, 20) + '" name="' + nameVal + '"');
 
   /* D5 归档删除：ARC-1 移除、ARC-2 保留；再删光显示空提示 */

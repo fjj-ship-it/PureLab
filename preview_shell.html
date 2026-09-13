@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PureLab · 手机壳预览</title>
+<style>
+/* ============================================================
+   PureLab 手机壳预览 —— 改代码后不装 APK 也能看真实效果
+   本文件是「外壳模板」，真正的 App 源码不在这里：
+     build_preview.py 会把 app/assets/www/ 的 index.html + app.css + app.js
+     内联成一份 HTML、base64 编码后填进下面的 CONFIG.appB64 占位符，
+     生成自包含的 preview.html。
+   为什么要自包含：预览页与 App 必须同源才能跳屏 / 注入安全区，
+     而 srcdoc 装载的内联文档天然与父页同源 ——
+     于是 file://、http://、WorkBuddy 侧边栏预览三种环境都能直接用，不必起服务。
+   适配新 App：改 CONFIG.screens / CONFIG.storeKey，并把 APP 三项路径改掉。
+   ============================================================ */
+:root{
+  --pz-bg:#0E1012; --pz-panel:#16191C; --pz-line:#262A2F;
+  --pz-ink:#E7E9EB; --pz-dim:#8C9298; --pz-acc:#C0A381;
+  --pz-ok:#5E9E63; --pz-bad:#C0554C;
+  --bezel:11px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--pz-bg);color:var(--pz-ink);
+  font:13px/1.5 -apple-system,"Segoe UI","Microsoft YaHei",system-ui,sans-serif;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+
+/* ---------------- 顶部工具条 ---------------- */
+.bar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  padding:9px 16px;background:var(--pz-panel);border-bottom:1px solid var(--pz-line);z-index:5}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;letter-spacing:.02em}
+.brand i{width:8px;height:8px;border-radius:50%;background:var(--pz-acc);box-shadow:0 0 0 3px rgba(192,163,129,.16)}
+.grp{display:flex;align-items:center;gap:6px;padding-left:10px;border-left:1px solid var(--pz-line)}
+.grp.first{border-left:0;padding-left:0}
+label.f{display:flex;align-items:center;gap:5px;color:var(--pz-dim);font-size:12px}
+select,input[type=number]{background:#0E1012;color:var(--pz-ink);border:1px solid var(--pz-line);
+  border-radius:7px;padding:5px 7px;font:12px/1.4 inherit;outline:none;max-width:190px}
+input[type=number]{width:52px;text-align:center;padding:5px 4px}
+select:focus,input:focus{border-color:var(--pz-acc)}
+button.btn{background:#1E2226;color:var(--pz-ink);border:1px solid var(--pz-line);
+  border-radius:7px;padding:6px 10px;font:12px/1 inherit;cursor:pointer;white-space:nowrap;transition:background .16s,border-color .16s}
+button.btn:hover{background:#262B30;border-color:#3A424C}
+button.btn:active{transform:translateY(1px)}
+button.btn.on{background:var(--pz-acc);color:#1A1C1E;border-color:var(--pz-acc);font-weight:600}
+button.btn.ico{min-width:30px;padding:6px 9px;text-align:center}
+button.btn.warn:hover{background:#3A2422;border-color:#5A342F;color:#E6A79E}
+.sw{display:inline-flex;align-items:center;gap:6px;color:var(--pz-dim);font-size:12px;
+  cursor:pointer;white-space:nowrap;user-select:none}
+.sw input{appearance:none;-webkit-appearance:none;width:32px;height:18px;border-radius:999px;
+  background:#2A2F35;position:relative;cursor:pointer;transition:background .18s;flex:0 0 auto}
+.sw input:checked{background:var(--pz-acc)}
+.sw input::after{content:'';position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;
+  background:#fff;transition:transform .18s}
+.sw input:checked::after{transform:translateX(14px)}
+
+/* ---------------- 舞台 ---------------- */
+.stage{flex:1;display:grid;grid-template-columns:1fr 300px;min-height:0}
+.work{display:flex;flex-direction:column;min-width:0;min-height:0}
+.hud{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:7px 18px;font-size:11.5px;color:var(--pz-dim);
+  border-bottom:1px solid var(--pz-line);background:#121417;letter-spacing:.02em}
+.hud b{color:var(--pz-ink);font-weight:600}
+.hud .tag{padding:1px 7px;border-radius:999px;background:#1F242A;border:1px solid var(--pz-line)}
+.hud .tag.ok{color:#9FD3A3;border-color:#2E4630;background:#15201A}
+.hud .tag.bad{color:#E6A79E;border-color:#4A2B27;background:#201514}
+.warn{display:none;padding:8px 18px;background:#3A2422;border-bottom:1px solid #5A342F;
+  color:#E6A79E;font-size:12px;line-height:1.65}
+.canvas{flex:1;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:16px 18px 26px}
+.zoomer{flex:0 0 auto;transform-origin:top center}
+
+/* ---------------- 手机壳 ---------------- */
+.device{position:relative;padding:var(--bezel);
+  border-radius:calc(var(--r,26px) + var(--bezel));
+  background:linear-gradient(155deg,#3B4046 0%,#23272B 28%,#16191C 62%,#0B0D0F 100%);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.075),
+    0 28px 64px rgba(0,0,0,.62),
+    0 1px 0 rgba(255,255,255,.07) inset,
+    0 -2px 0 rgba(0,0,0,.55) inset;}
+.device::after{content:'';position:absolute;inset:var(--bezel);border-radius:var(--r,26px);
+  pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,.65) inset}
+.pwr,.vol{position:absolute;right:-2px;width:3px;border-radius:0 3px 3px 0;
+  background:linear-gradient(180deg,#43494F,#22262A)}
+.pwr{top:30%;height:58px}
+.vol{top:19%;height:40px}
+.vol2{position:absolute;right:-2px;top:28%;width:3px;height:40px;border-radius:0 3px 3px 0;
+  background:linear-gradient(180deg,#43494F,#22262A)}
+
+.screen{position:relative;width:var(--w,360px);height:var(--h,800px);
+  border-radius:var(--r,26px);overflow:hidden;background:#F9F2EA}
+.viewport{position:absolute;left:0;top:0;width:100%;height:100%;background:#F9F2EA}
+.screen iframe{width:100%;height:100%;border:0;display:block;background:#F9F2EA}
+
+/* 刘海 / 挖孔 */
+.cam{position:absolute;z-index:8;left:50%;transform:translateX(-50%);
+  background:#070808;pointer-events:none;box-shadow:0 0 0 1px rgba(255,255,255,.07)}
+.cam.punch{top:var(--camtop,10px);width:11px;height:11px;border-radius:50%}
+.cam.island{top:11px;width:86px;height:25px;border-radius:14px}
+.cam.notch{top:0;width:152px;height:25px;border-radius:0 0 15px 15px}
+.cam.none{display:none}
+
+/* 状态栏 */
+.sbar{position:absolute;left:0;right:0;top:0;height:var(--sbar,28px);z-index:7;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 13px;pointer-events:none;font-size:11.5px;font-weight:600;letter-spacing:.01em;
+  color:var(--sbar-ink,#242A25);text-shadow:0 0 3px rgba(249,242,234,.55)}
+.sbar .r{display:flex;align-items:center;gap:5px;height:100%}
+.sbar svg{display:block;fill:currentColor}
+.sbar.hide{display:none}
+.sbar .t{padding-top:1px}
+
+/* 手势条 */
+.gbar{position:absolute;left:50%;transform:translateX(-50%);bottom:7px;z-index:7;
+  width:112px;height:4px;border-radius:999px;background:rgba(38,44,39,.5);pointer-events:none}
+.gbar.hide{display:none}
+
+/* 软键盘仿真 */
+.kb{position:absolute;left:0;right:0;bottom:0;z-index:9;display:none;
+  padding:8px 5px 7px;background:linear-gradient(180deg,#D7D4CD,#C9C5BC);
+  box-shadow:0 -1px 0 rgba(255,255,255,.5) inset}
+.kb.on{display:block}
+.kb .row{display:flex;gap:4px;justify-content:center;margin-bottom:5px}
+.kb .row:last-child{margin-bottom:0}
+.kb .k{flex:1;max-width:34px;height:30px;border-radius:5px;background:rgba(255,255,255,.92);
+  box-shadow:0 1px 0 rgba(0,0,0,.16);font:11px/30px -apple-system,system-ui,sans-serif;
+  text-align:center;color:#3A3F45}
+.kb .k.sp{max-width:none;flex:4;font-size:10px;color:#7A8086}
+.kb .k.dim{background:rgba(255,255,255,.55);color:transparent}
+
+/* ---------------- 侧栏 ---------------- */
+.panel{background:var(--pz-panel);border-left:1px solid var(--pz-line);overflow:auto;padding:14px 16px 34px}
+.panel h3{font-size:11.5px;font-weight:600;color:var(--pz-dim);letter-spacing:.09em;
+  text-transform:uppercase;margin:18px 0 8px}
+.panel h3:first-child{margin-top:2px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:5px 0;
+  border-bottom:1px dashed #22262B;font-size:12.5px}
+.kv span:first-child{color:var(--pz-dim);white-space:nowrap}
+.kv span:last-child{text-align:right;word-break:break-word}
+.note{font-size:12px;color:var(--pz-dim);line-height:1.75}
+.note b{color:#CFD4D8;font-weight:600}
+.note code{background:#0E1012;border:1px solid var(--pz-line);border-radius:4px;
+  padding:1px 5px;font:.92em/1.5 Consolas,Menlo,monospace;color:#D8C7A9}
+.note ul{margin:6px 0 0 15px}
+.note li{margin-bottom:4px}
+
+@media (max-width:940px){
+  .stage{grid-template-columns:1fr}
+  .panel{display:none}
+}
+/* 侧边栏预览栏通常只有 350–500px 宽：收起次要控件，别让工具条堆成好几行 */
+@media (max-width:820px){
+  .bar{padding:7px 10px;gap:6px}
+  .bar .opt{display:none}
+  .hud{padding:6px 12px}
+  .canvas{padding:12px 10px 20px}
+  .brand{font-size:12.5px}
+}
+body.solo .bar,body.solo .panel,body.solo .hud{display:none}
+body.solo .stage{grid-template-columns:1fr}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="brand"><i></i>PureLab 手机壳预览</div>
+
+  <div class="grp first">
+    <label class="f">机型
+      <select id="dev"></select>
+    </label>
+  </div>
+
+  <div class="grp">
+    <label class="f opt">宽 <input type="number" id="cw" step="1"></label>
+    <label class="f opt">高 <input type="number" id="ch" step="1"></label>
+    <button class="btn" id="btn-fit" title="按窗口高度自动缩放">自适应</button>
+    <button class="btn opt" id="btn-100">100%</button>
+  </div>
+
+  <div class="grp">
+    <button class="btn ico" id="btn-prev" title="上一屏">‹</button>
+    <label class="f"><select id="scsel"></select></label>
+    <button class="btn ico" id="btn-next" title="下一屏">›</button>
+  </div>
+
+  <div class="grp">
+    <button class="btn" id="btn-reload" title="重新加载 App（保留数据）">重载</button>
+    <button class="btn warn" id="btn-reset" title="清空 localStorage 并重新种演示数据">重置数据</button>
+  </div>
+
+  <div class="grp">
+    <label class="sw"><input type="checkbox" id="sw-sbar" checked>状态栏</label>
+    <label class="sw"><input type="checkbox" id="sw-gbar" checked>手势条</label>
+    <label class="sw opt"><input type="checkbox" id="sw-tap">触达框</label>
+    <label class="sw opt"><input type="checkbox" id="sw-kb">软键盘</label>
+  </div>
+</header>
+
+<main class="stage">
+  <section class="work">
+    <div class="hud" id="hud"></div>
+    <div class="warn" id="warn"></div>
+    <div class="canvas" id="canvas">
+      <div class="zoomer" id="zoomer">
+        <div class="device" id="device">
+          <div class="pwr"></div><div class="vol"></div><div class="vol2"></div>
+          <div class="screen" id="screen">
+            <div class="viewport" id="viewport">
+              <iframe id="app" title="PureLab"></iframe>
+            </div>
+            <div class="kb" id="kb"></div>
+            <div class="cam punch none" id="cam"></div>
+            <div class="sbar" id="sbar">
+              <span class="t" id="sb-time">9:41</span>
+              <span class="r" id="sb-icons"></span>
+            </div>
+            <div class="gbar" id="gbar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <h3>当前</h3>
+    <div class="kv"><span>机型</span><span id="i-dev">—</span></div>
+    <div class="kv"><span>屏幕</span><span id="i-size">—</span></div>
+    <div class="kv"><span>缩放</span><span id="i-zoom">—</span></div>
+    <div class="kv"><span>当前界面</span><span id="i-screen">—</span></div>
+    <div class="kv"><span>源码快照</span><span id="i-hash">—</span></div>
+
+    <h3>真机条件仿真</h3>
+    <div class="kv"><span>安全区上</span><span id="i-sat">—</span></div>
+    <div class="kv"><span>安全区下</span><span id="i-sab">—</span></div>
+    <div class="kv"><span>触达框统计</span><span id="i-tap">—</span></div>
+    <div class="kv"><span>App 运行时报错</span><span id="i-err">0</span></div>
+
+    <h3>为什么要有状态栏</h3>
+    <p class="note">
+      App 的 <code>targetSdkVersion=35</code>，在 <b>Android 15+ 会被强制 edge-to-edge</b>：
+      状态栏叠在内容之上。此时 App 顶部导航实际从 <code>--safe-t</code> 之下开始。
+      浏览器里预览看不到这层，外壳把状态栏画出来才能暴露「标题被时钟压住」这类问题。<br>
+      这里开关状态栏时，会同步向 iframe 注入
+      <code>--safe-t</code> / <code>--safe-b</code>，等效于真机返回的
+      <code>env(safe-area-inset-*)</code>。
+    </p>
+
+    <h3>怎么用</h3>
+    <p class="note">
+      <ul>
+        <li>屏幕里可以<b>直接点、直接输入</b>，和真机一样。</li>
+        <li>顶部下拉可<b>直跳任意界面</b>；在屏幕里自己点着走，左上角选择器会跟着变。</li>
+        <li><b>软键盘</b>勾上后，视口会像 <code>adjustResize</code> 那样缩短，用来验证输入框会不会被挡住。</li>
+        <li><b>触达框</b>会把可点元素描边：绿色 ≥44px，红色不足 44px，鼠标悬停能看到「可视尺寸 / 命中区尺寸」。判定用的是<b>有效命中区</b>（含 <code>::after</code> 外扩量），不是元素盒；96 个孔位是已知物理约束，用琥珀色虚线单独标出、不计入「不足」统计。</li>
+        <li>数据存在浏览器 localStorage，<b>与手机上的数据互不影响</b>；「重置数据」回到演示状态。</li>
+        <li>应用锁定竖屏，所以这里不做横屏预览。</li>
+      </ul>
+    </p>
+
+    <h3>为什么不用起服务</h3>
+    <p class="note">
+      本页是<b>自包含单文件</b>：App 的 <code>index.html</code> + <code>app.css</code> + <code>app.js</code>
+      已被内联、base64 编码后写在本页里，用 <code>srcdoc</code> 装进手机屏幕。
+      <code>srcdoc</code> 的文档天然与父页同源，所以跳屏、安全区注入、触达框都能用 ——
+      <b>WorkBuddy 侧边栏预览、直接双击打开、挂到 http 上都行，不必起本地服务。</b>
+    </p>
+
+    <h3>改完 App 源码之后</h3>
+    <p class="note">
+      预览页里用的是生成时的快照。改完 <code>app/assets/www/</code> 下的文件后，
+      重跑一次 <code>python build_preview.py</code>，它会把最新的 HTML/CSS/JS 重新打进本页。
+    </p>
+
+    <h3>快捷键</h3>
+    <p class="note">
+      <code>Alt</code> + <code>←</code> / <code>→</code> 切上下界面 ·
+      <code>Alt</code> + <code>R</code> 重载 · <code>Alt</code> + <code>0</code> 自适应缩放
+    </p>
+
+    <h3>出问题了？</h3>
+    <p class="note">
+      顶部出现红色提示条 = 预览环境不允许脚本访问屏幕内的文档。
+      本页用 <code>srcdoc</code> 装载，正常应同源；若真被拦，把 <code>preview.html</code>
+      放到本地 http 下打开即可（同源规则会放行）。
+    </p>
+  </aside>
+</main>
+
+<script>
+/* ============================ CONFIG ============================ */
+var CONFIG = {
+  /* App 入口 HTML 的 base64 —— 由 build_preview.py 注入，不要手改。
+     内容是 app/assets/www/ 的 index.html，其中 <link>/<script> 已换成内联的样式与脚本。 */
+  appB64: '__APP_B64__',
+
+  /* 界面清单：[id, 中文名, 英文名]，顺序决定 ‹ › 的走向 */
+  screens: [
+    ['s02', '实验工作台',   'WORKSPACE'],
+    ['s03', '新建实验',     'NEW EXPERIMENT'],
+    ['s04', '条件设置',     'CONDITIONS'],
+    ['s05', '孔板分配',     'PLATE MAP'],
+    ['s06', '确认设置',     'CONFIRM'],
+    ['s07', '实验详情',     'RUN'],
+    ['s08', '孔板记录',     'WELL RECORD'],
+    ['s09', '批量录入',     'BATCH ENTRY'],
+    ['s10', '单孔详情',     'WELL DETAIL'],
+    ['s11', '结果总览',     'RESULTS'],
+    ['s12', '最佳条件',     'KEY CONDITION'],
+    ['s13', '结果排名',     'RANKING'],
+    ['s14', '试剂库',       'REAGENTS'],
+    ['s15', '我的',         'PROFILE'],
+    ['s16', '实验总览',     'EXPERIMENTS']
+  ],
+
+  /* 「重置数据」要清掉的 localStorage key */
+  storeKey: 'purelab_db',
+
+  /* 生成时间 + 源码快照哈希（build_preview.py 注入），用来判断预览页是否已过期 */
+  srcInfo: '__SRC_INFO__'
+};
+
+/* UTF-8 安全的 base64 解码；只解一次，之后复用 */
+var _appHtml = null;
+function appHtml() {
+  if (_appHtml) return _appHtml;
+  var b64 = CONFIG.appB64;
+  if (!b64 || b64.length < 100) return '';   /* 还没被 build_preview.py 注入 */
+  var bin = atob(b64), n = bin.length, bytes = new Uint8Array(n);
+  for (var i = 0; i < n; i++) bytes[i] = bin.charCodeAt(i);
+  _appHtml = new TextDecoder('utf-8').decode(bytes);
+  return _appHtml;
+}
+
+/* 机型预设：w/h 为 CSS 像素（= Android 的 dp），r 为屏幕圆角，bar 为状态栏高度 */
+var DEVICES = [
+  {id:'and360', name:'Android 通用 360×800', w:360, h:800,  r:26, cam:'punch',  camtop:10, bar:28, syst:28, sysb:24},
+  {id:'and412', name:'Pixel 7 412×915',      w:412, h:915,  r:32, cam:'punch',  camtop:11, bar:28, syst:28, sysb:24},
+  {id:'and432', name:'大屏 Android 432×960',  w:432, h:960,  r:34, cam:'punch',  camtop:12, bar:30, syst:30, sysb:24},
+  {id:'ip393',  name:'iPhone 15 393×852',    w:393, h:852,  r:48, cam:'island', camtop:0,  bar:54, syst:52, sysb:34},
+  {id:'ip390',  name:'iPhone 14 390×844',    w:390, h:844,  r:44, cam:'notch',  camtop:0,  bar:47, syst:46, sysb:34},
+  {id:'se375',  name:'iPhone SE 375×667',    w:375, h:667,  r:18, cam:'none',   camtop:0,  bar:20, syst:20, sysb:0},
+  {id:'sm320',  name:'小屏 320×640（回归）',   w:320, h:640,  r:18, cam:'none',   camtop:0,  bar:24, syst:24, sysb:20},
+  {id:'tab768', name:'平板 768×1024（看 460 上限）', w:768, h:1024, r:22, cam:'none', camtop:0, bar:28, syst:28, sysb:24}
+];
+
+/* ============================ 状态 ============================ */
+var BEZEL = 11;
+var $ = function (id) { return document.getElementById(id); };
+var ifr = $('app'), device = $('device'), zoomer = $('zoomer'),
+    canvas = $('canvas'), viewport = $('viewport'), screenEl = $('screen');
+
+var dev = DEVICES[0], zoom = 1, autoFit = true, curIdx = 0, errCount = 0, mo = null;
+
+/* ============================ 状态栏图标 ============================ */
+function icons() {
+  return '<svg width="15" height="10" viewBox="0 0 15 10">'
+       +   '<rect x="0" y="6" width="2.4" height="4" rx=".6"/>'
+       +   '<rect x="3.6" y="4.4" width="2.4" height="5.6" rx=".6"/>'
+       +   '<rect x="7.2" y="2.6" width="2.4" height="7.4" rx=".6"/>'
+       +   '<rect x="10.8" y=".8" width="2.4" height="9.2" rx=".6"/>'
+       + '</svg>'
+       + '<svg width="14" height="10" viewBox="0 0 14 10">'
+       +   '<path d="M7 9.2 4.4 6.3a3.9 3.9 0 0 1 5.2 0L7 9.2z"/>'
+       +   '<path d="M7 4.6c1.7 0 3.2.6 4.4 1.7l1.3-1.5A8.5 8.5 0 0 0 7 2.5 8.5 8.5 0 0 0 1.3 4.8l1.3 1.5A6.4 6.4 0 0 1 7 4.6z" opacity=".95"/>'
+       + '</svg>'
+       + '<svg width="18" height="10" viewBox="0 0 18 10">'
+       +   '<rect x=".5" y=".5" width="15" height="9" rx="2.6" fill="none" stroke="currentColor" stroke-opacity=".45"/>'
+       +   '<rect x="2" y="2" width="10" height="6" rx="1.5"/>'
+       +   '<path d="M16.6 3.4v3.2a1.9 1.9 0 0 0 0-3.2z" opacity=".5"/>'
+       + '</svg>';
+}
+
+/* 键盘图形 */
+function buildKb() {
+  var rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+  var h = '';
+  rows.forEach(function (r) {
+    h += '<div class="row">';
+    for (var i = 0; i < r.length; i++) h += '<span class="k">' + r[i] + '</span>';
+    h += '</div>';
+  });
+  h += '<div class="row"><span class="k sp">空格</span></div>';
+  $('kb').innerHTML = h;
+}
+
+/* ============================ 尺寸 / 缩放 ============================ */
+function setDevice(i, keepCustom) {
+  dev = DEVICES[i];
+  device.style.setProperty('--w', dev.w + 'px');
+  device.style.setProperty('--h', dev.h + 'px');
+  device.style.setProperty('--r', dev.r + 'px');
+  $('cam').className = 'cam ' + dev.cam;
+  if (dev.cam === 'punch') $('cam').style.setProperty('--camtop', dev.camtop + 'px');
+  $('sbar').style.setProperty('--sbar', dev.bar + 'px');
+  if (!keepCustom) { $('cw').value = dev.w; $('ch').value = dev.h; }
+  applySafe();
+  fit();
+}
+
+function setWH(w, h) {
+  dev = Object.assign({}, dev, { w: w, h: h });
+  device.style.setProperty('--w', w + 'px');
+  device.style.setProperty('--h', h + 'px');
+  applySafe();
+  fit();
+}
+
+function fit() {
+  var c = canvas.getBoundingClientRect();
+  var dw = dev.w + BEZEL * 2, dh = dev.h + BEZEL * 2;
+  var kbH = $('sw-kb').checked ? 262 : 0;
+  if (autoFit) {
+    zoom = Math.min(1, (c.height - 44) / dh, (c.width - 40) / dw);
+    zoom = Math.max(0.25, Math.round(zoom * 100) / 100);
+  }
+  zoomer.style.zoom = zoom;
+  hud();
+}
+
+/* ============================ 真机条件注入 ============================ */
+function applySafe() {
+  var d = ifr.contentDocument;
+  if (!d || !d.documentElement) return;
+  var st = $('sw-sbar').checked ? dev.syst : 0;
+  var sb = $('sw-gbar').checked ? dev.sysb : 0;
+  d.documentElement.style.setProperty('--safe-t', st + 'px');
+  d.documentElement.style.setProperty('--safe-b', sb + 'px');
+  $('sbar').classList.toggle('hide', !$('sw-sbar').checked);
+  $('gbar').classList.toggle('hide', !$('sw-gbar').checked);
+  $('i-sat').textContent = st + 'px';
+  $('i-sab').textContent = sb + 'px';
+}
+
+function applyKb() {
+  var on = $('sw-kb').checked;
+  $('kb').classList.toggle('on', on);
+  var kbH = on ? 262 : 0;
+  viewport.style.height = kbH ? 'calc(100% - ' + kbH + 'px)' : '100%';
+  screenEl.style.setProperty('--sbar', on ? '0px' : dev.bar + 'px');
+  $('sbar').style.setProperty('--sbar', (on ? 0 : dev.bar) + 'px');
+  if (on) {
+    try {
+      var d = ifr.contentDocument, a = d.activeElement;
+      if (a && /INPUT|TEXTAREA/.test(a.tagName)) a.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    } catch (e) { /* 忽略 */ }
+  }
+  fit();
+}
+
+/* ============================ 触达框覆盖层 ============================ */
+var TAP_SEL = 'button,a,input,select,textarea,[data-go],[data-back],.text-act,.chip,.well,'
+            + '.exp-del,.arch-del,.seg-item,.combo-act,.combo-drag,.ghost-add,.mini-act,'
+            + '.rank-row,.nav-back,.nav-text,.nav-avatar,.nav-chip,.frow.check,.switch';
+
+/* 元素的「有效命中区」：元素盒 + ::after 负向 inset 外扩量
+   （App 用 ::after{inset:-Npx} 把命中区扩到 44px，视觉几何不动，
+     只量元素盒会把已经合格的控件误判成不足 44px） */
+function effBox(el) {
+  var r = el.getBoundingClientRect();
+  var w = r.width, h = r.height;
+  try {
+    var af = getComputedStyle(el, '::after');
+    if (af && af.content !== 'none' && af.position === 'absolute') {
+      var t = parseFloat(af.top), ri = parseFloat(af.right),
+          b = parseFloat(af.bottom), le = parseFloat(af.left);
+      if (le < 0) w -= le;
+      if (ri < 0) w -= ri;
+      if (t < 0)  h -= t;
+      if (b < 0)  h -= b;
+      var aw = parseFloat(af.width), ah = parseFloat(af.height);
+      if (!isNaN(aw) && aw > w) w = aw;
+      if (!isNaN(ah) && ah > h) h = ah;
+    }
+  } catch (e) { /* 忽略 */ }
+  return { w: Math.round(w), h: Math.round(h) };
+}
+
+function overlay() {
+  var d = ifr.contentDocument;
+  if (!d) return;
+  d.querySelectorAll('[data-pz-out]').forEach(function (el) {
+    el.style.outline = ''; el.style.outlineOffset = ''; el.removeAttribute('data-pz-out');
+    el.removeAttribute('title');
+  });
+  if (!$('sw-tap').checked) { $('i-tap').textContent = '—'; return; }
+  var n = 0, bad = 0, wells = 0;
+  d.querySelectorAll(TAP_SEL).forEach(function (el) {
+    var cs = getComputedStyle(el);
+    if (cs.display === 'none' || cs.visibility === 'hidden') return;
+    var r = el.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) return;
+    el.setAttribute('data-pz-out', '1');
+    /* 96 孔板单孔是已知物理约束（8×12 板 + 手机宽），单独计数、不混进「不足 44px」 */
+    if (el.classList.contains('well')) {
+      el.style.outline = '1px dashed rgba(192,163,129,.7)';
+      el.style.outlineOffset = '0';
+      wells++;
+      return;
+    }
+    var e = effBox(el);
+    var ok = e.w >= 44 && e.h >= 44;
+    el.style.outline = ok ? '1px solid rgba(94,158,99,.9)' : '1.5px solid rgba(192,85,76,.95)';
+    el.style.outlineOffset = '2px';
+    el.title = '可视 ' + Math.round(r.width) + '×' + Math.round(r.height)
+             + ' · 命中区 ' + e.w + '×' + e.h + (ok ? ' ✓' : ' ✗ 不足 44px');
+    n++; if (!ok) bad++;
+  });
+  $('i-tap').textContent = n + ' 个 · 不足 44px ' + bad + ' 个 · 孔位 ' + wells + ' 个（豁免）';
+}
+
+/* ============================ 界面跳转 ============================ */
+function parseHash() {
+  var m = /(?:^|[#&])pz([0-9]+)/.exec(location.hash || '');
+  return m ? +m[1] : 0;
+}
+
+function jump(i, silent) {
+  if (i < 0 || i >= CONFIG.screens.length) return;
+  curIdx = i;
+  var id = CONFIG.screens[i][0];
+  try {
+    var w = ifr.contentWindow;
+    w.show(id);
+    w.stack = (id === 's02') ? ['s02'] : ['s02', id];
+  } catch (e) {
+    errCount++; $('i-err').textContent = errCount + '（' + id + '）';
+  }
+  $('scsel').value = String(i);
+  if (!silent) location.hash = 'pz' + i;
+  overlay();
+  hud();
+}
+
+function syncFromFrame() {
+  try {
+    var st = ifr.contentWindow.stack;
+    if (!st || !st.length) return;
+    var id = st[st.length - 1];
+    var i = -1;
+    for (var k = 0; k < CONFIG.screens.length; k++) if (CONFIG.screens[k][0] === id) i = k;
+    if (i >= 0 && i !== curIdx) { curIdx = i; $('scsel').value = String(i); hud(); }
+  } catch (e) { /* 忽略 */ }
+}
+
+/* ============================ HUD / 侧栏 ============================ */
+function hud() {
+  var s = CONFIG.screens[curIdx];
+  $('hud').innerHTML =
+      '<span class="tag">' + dev.w + '×' + dev.h + '</span>'
+    + '<span>缩放 <b>' + Math.round(zoom * 100) + '%</b></span>'
+    + '<span>' + s[1] + ' <b>' + s[0] + '</b></span>'
+    + '<span class="tag' + ($('sw-sbar').checked ? ' ok' : '') + '">'
+      + ($('sw-sbar').checked ? 'edge-to-edge · 状态栏 ' + dev.syst + 'px' : '非全屏 · 系统栏挤开 WebView') + '</span>'
+    + '<span class="tag' + (errCount ? ' bad' : '') + '">报错 ' + errCount + '</span>';
+  $('i-dev').textContent = dev.name;
+  $('i-size').textContent = dev.w + ' × ' + dev.h + ' · 圆角 ' + dev.r + 'px';
+  $('i-zoom').textContent = Math.round(zoom * 100) + '%' + (autoFit ? '（自适应）' : '');
+  $('i-screen').textContent = s[1] + ' · ' + s[0];
+  $('i-hash').textContent = CONFIG.srcInfo;
+  $('i-err').textContent = String(errCount);
+}
+
+/* ============================ iframe 生命周期 ============================ */
+function onLoad() {
+  var d = null;
+  try { d = ifr.contentDocument; } catch (e) { d = null; }
+  if (!d || !d.documentElement) {
+    warn('预览环境不允许脚本访问屏幕内的文档（跨源），跳屏与安全区仿真不可用。'
+       + '本页用 srcdoc 装载、正常应同源；若被拦，改用 file:// 直接打开或挂到本地 http 上。');
+    return;
+  }
+  applySafe();
+  overlay();
+  /* 跟屏：观察 App 内容变化，刷新触达框覆盖层（只监听结构，避免自触发） */
+  try {
+    if (mo) mo.disconnect();
+    mo = new MutationObserver(function () {
+      clearTimeout(onLoad._t);
+      onLoad._t = setTimeout(function () { overlay(); syncFromFrame(); }, 140);
+    });
+    mo.observe(d.getElementById('app') || d.body, { childList: true, subtree: true });
+  } catch (e) { /* 忽略 */ }
+  /* 快捷键 */
+  d.addEventListener('keydown', function (e) {
+    if (!e.altKey) return;
+    if (e.key === 'ArrowLeft')  { jump(curIdx - 1); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { jump(curIdx + 1); e.preventDefault(); }
+    if (e.key === 'r' || e.key === 'R') { reload(); e.preventDefault(); }
+  });
+  try { ifr.contentWindow.addEventListener('error', function () { errCount++; hud(); }); } catch (e) {}
+  /* 初始界面 */
+  jump(parseHash() || 0, true);
+}
+
+/* 把内联的 App 源码用 srcdoc 装进手机屏幕。
+   追加一个每次不同的注释，强制重新导航（等效刷新）。 */
+var _stamp = 0;
+function loadApp() {
+  var html = appHtml();
+  if (!html) {
+    warn('本页里的 App 源码还是空的：请先运行 python build_preview.py 生成预览页。');
+    return;
+  }
+  _stamp++;
+  try { ifr.srcdoc = html + '\n<!-- pz-stamp:' + _stamp + ' -->'; }
+  catch (e) { warn('装载失败：' + e.message); }
+}
+function reload() { loadApp(); }
+function reset() {
+  try { ifr.contentWindow.localStorage.removeItem(CONFIG.storeKey); } catch (e) {}
+  loadApp();
+}
+function warn(msg) {
+  var el = $('warn');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+/* ============================ 绑定 ============================ */
+function init() {
+  if (/[?&]solo=1/.test(location.search)) document.body.classList.add('solo');
+
+  $('sb-time').textContent = (function () {
+    var d = new Date();
+    return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0');
+  })();
+  $('sb-icons').innerHTML = icons();
+  buildKb();
+
+  var ds = $('dev');
+  DEVICES.forEach(function (d, i) {
+    var o = document.createElement('option');
+    o.value = String(i); o.textContent = d.name;
+    ds.appendChild(o);
+  });
+  ds.value = '0';
+
+  var ss = $('scsel');
+  CONFIG.screens.forEach(function (s, i) {
+    var o = document.createElement('option');
+    o.value = String(i); o.textContent = s[0] + ' · ' + s[1];
+    ss.appendChild(o);
+  });
+
+  ds.onchange = function () { autoFit = true; $('btn-fit').classList.add('on'); setDevice(+ds.value); };
+  ss.onchange = function () { jump(+ss.value); };
+  $('cw').onchange = function () { setWH(Math.max(240, +$('cw').value || dev.w), dev.h); };
+  $('ch').onchange = function () { setWH(dev.w, Math.max(360, +$('ch').value || dev.h)); };
+  $('btn-prev').onclick = function () { jump(curIdx - 1); };
+  $('btn-next').onclick = function () { jump(curIdx + 1); };
+  $('btn-reload').onclick = reload;
+  $('btn-reset').onclick = reset;
+  $('btn-fit').onclick = function () { autoFit = true; $('btn-fit').classList.add('on'); $('btn-100').classList.remove('on'); fit(); hud(); };
+  $('btn-100').onclick = function () { autoFit = false; zoom = 1; $('btn-100').classList.add('on'); $('btn-fit').classList.remove('on'); fit(); hud(); };
+  $('sw-sbar').onchange = function () { applySafe(); hud(); };
+  $('sw-gbar').onchange = function () { applySafe(); hud(); };
+  $('sw-tap').onchange = overlay;
+  $('sw-kb').onchange = applyKb;
+  $('btn-fit').classList.add('on');
+
+  ifr.addEventListener('load', onLoad);
+  loadApp();
+
+  window.addEventListener('resize', function () { if (autoFit) fit(); else fit(); });
+  window.addEventListener('hashchange', function () { var i = parseHash(); if (i !== curIdx) jump(i, true); });
+  setInterval(syncFromFrame, 500);
+  setInterval(function () {
+    $('sb-time').textContent = (function () {
+      var d = new Date();
+      return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0');
+    })();
+  }, 20000);
+
+  setDevice(0);
+  hud();
+}
+
+document.addEventListener('keydown', function (e) {
+  if (!e.altKey) return;
+  if (e.key === '0') { autoFit = true; $('btn-fit').classList.add('on'); fit(); }
+});
+
+init();
+</script>
+</body>
+</html>

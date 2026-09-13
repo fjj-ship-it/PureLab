@@ -10,19 +10,49 @@
   --line:#C1BEB5;         /* 分隔线（Swatch 3） */
   --panel:#E0D8D1;        /* 浅面板（Swatch 1） */
   --panel2:#D8D3CC;       /* 次面板（Swatch 2） */
-  --warm:#C0A381;         /* 状态点缀（Swatch 7） */
+  --warm:#C0A381;         /* 状态点缀（Swatch 7）· 仅限图形与深绿底 */
   --paper:#FFFFFF;        /* 卡片纸面（中性色） */
+  /* v38 文本安全级派生色：原色在米白/白底上对比度仅 2.36~2.39:1，不达 WCAG AA 4.5:1。
+     以下两色为文本专用派生，原色继续承担图形/描边/深绿底文字职责。 */
+  --ink3t:#666E61;        /* 4.77:1 on #F9F2EA · 5.29:1 on #FFF —— 代替 ink3 的全部文本用途 */
+  --warm-ink:#7E5F36;     /* 5.29:1 on #F9F2EA · 5.87:1 on #FFF —— 浅底上的暖棕数字/文字 */
+  --danger:#9A5147;       /* 5.19:1 on #F9F2EA · 5.77:1 on #FFF */
+  --tap:44px;             /* 最小触达尺寸 */
   --r-card:14px; --r-input:10px;
   --shadow:0 1px 3px rgba(47,58,49,.08);
+  /* v41 液态玻璃层（P1）：只用于吸顶导航 / 弹层 / Toast，每屏玻璃节点 ≤3。
+     铁律：backdrop-filter 不参与动画；数据区（孔板/表格/深绿卡）永不玻璃化。 */
+  --glass:rgba(255,255,255,.55);
+  --glass-strong:rgba(255,255,255,.78);   /* 承载正文的玻璃必须用强档 */
+  --glass-warm:rgba(249,242,234,.72);     /* 暖调玻璃：导航底（与页面底色同相） */
+  --glass-line:rgba(255,255,255,.65);     /* 高光描边：玻璃质感的关键一笔 */
+  --blur:blur(14px) saturate(1.4);
+  --shadow-float:0 8px 24px rgba(47,58,49,.14);
   --safe-t:env(safe-area-inset-top,0px);
   --safe-b:env(safe-area-inset-bottom,0px);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{
-  background:var(--bg);color:var(--ink);
+  /* v41 氛围光：两团固定色斑（暖棕右上 / 墨绿左下），给玻璃「可透的内容」。
+     直接挂在 body 多重背景上，不引入伪元素，避免层叠上下文问题。 */
+  background:
+    radial-gradient(340px 340px at 88% -40px, rgba(192,163,129,.20), transparent 70%),
+    radial-gradient(420px 420px at -60px 100%, rgba(83,98,83,.12), transparent 70%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--ink);
   font-family:-apple-system,"HarmonyOS Sans SC","MiSans","PingFang SC","Source Han Sans SC","Microsoft YaHei",sans-serif;
   font-feature-settings:"tnum";letter-spacing:.01em;
+  /* v40 全局排版兜底：末行孤字（只剩一两个字）时让排版器往前匀一匀。
+     对白名单元素（.hint/.arch-sub/.stat .k 等）是主要手段，对 nowrap 元素无影响。 */
+  text-wrap:pretty;
+}
+/* v41 玻璃降级：不支持 backdrop-filter 的 WebView 回退不透明面板，观感完整、对比度不降 */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .nav{background:var(--bg);border-bottom-color:var(--line)}
+  .sheet{background:var(--bg);border-color:var(--line);box-shadow:var(--shadow)}
+  .toast{background:var(--ink);border-color:transparent}
 }
 button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
 input{font-family:inherit;color:var(--ink)}
@@ -34,13 +64,17 @@ input{font-family:inherit;color:var(--ink)}
 @keyframes fadein{from{opacity:.35}to{opacity:1}}
 .nav{
   display:flex;align-items:center;gap:8px;
-  padding:12px 16px 10px;position:sticky;top:0;z-index:20;background:var(--bg);
+  padding:12px 16px 10px;position:sticky;top:0;z-index:20;
+  /* v41 玻璃导航：内容从标题栏下穿过时透出模糊；暖调玻璃与页面底色同相，文字色不变 */
+  background:var(--glass-warm);
+  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  border-bottom:1px solid rgba(193,190,181,.30);
 }
 .nav-back{font-size:26px;line-height:1;width:34px;height:34px;color:var(--ink)}
 .nav-title{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px}
 .nav-title .zh{font-size:17px;font-weight:600}
-.nav-title .en{font-size:9px;letter-spacing:.22em;color:var(--ink3);font-weight:500}
-.nav-side{width:56px;display:flex;justify-content:flex-end}
+.nav-title .en{font-size:9px;letter-spacing:.22em;color:var(--ink3t);font-weight:500}
+.nav-side{width:64px;display:flex;justify-content:flex-end}
 .nav-text{font-size:13px;color:var(--ink2);border-bottom:1px solid var(--line);padding-bottom:2px}
 /* 导航头像钮（s02 我的） */
 .nav-avatar{width:34px;height:34px;border-radius:50%;
@@ -53,7 +87,7 @@ input{font-family:inherit;color:var(--ink)}
 
 /* ---------------- 向导步骤指示器（①②③，参考稿还原） ---------------- */
 .stepper{display:flex;align-items:center;gap:8px;margin:10px 20px 2px}
-.step{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink3);white-space:nowrap}
+.step{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink3t);white-space:nowrap}
 .step i{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line);
   display:flex;align-items:center;justify-content:center;font-style:normal;font-size:10px}
 .step.on{color:var(--ink);font-weight:600}
@@ -76,7 +110,7 @@ input{font-family:inherit;color:var(--ink)}
 .exp-del,.arch-del{font-size:11px;font-weight:600;letter-spacing:.04em;
   padding:2px 2px;border-bottom:1px solid currentColor;opacity:.75;white-space:nowrap;flex:none}
 .exp-del:active,.arch-del:active{opacity:1}
-.arch-del{color:#A2554A;margin-left:8px}
+.arch-del{color:var(--danger);margin-left:8px}
 .exp-card.dark .exp-id{background:rgba(249,242,234,.16);color:#F9F2EA;border-color:transparent}
 .exp-card.dark .tag.run{background:rgba(249,242,234,.18);color:#F9F2EA}
 .exp-card.dark .exp-meta{color:rgba(249,242,234,.78)}
@@ -105,46 +139,47 @@ input{font-family:inherit;color:var(--ink)}
 .combo-card.sel .combo-check{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .combo-check.on::after{content:"✓"}
 .combo-main{flex:1;min-width:0}
-.combo-act{flex:none;font-size:11px;color:var(--ink3);border-bottom:1px solid var(--line);padding-bottom:1px}
-.combo-act.del{color:var(--warm);border-bottom-color:rgba(192,163,129,.55)}
+.combo-act{flex:none;font-size:11px;color:var(--ink3t);border-bottom:1px solid var(--line);padding-bottom:1px}
+.combo-act.del{color:var(--warm-ink);border-bottom-color:rgba(192,163,129,.55)}
 /* 新建组合 · 配比模板（竖排：试剂名 + 份数，符号自动给出） */
 .tpl-rows{display:flex;flex-direction:column;gap:12px;
   background:var(--paper);border-radius:var(--r-input);box-shadow:var(--shadow);
   padding:14px;margin-top:10px}
 .tpl-row{display:flex;align-items:center;gap:10px}
-.tpl-lead{width:14px;text-align:center;color:var(--ink3);font-weight:700;font-size:15px;flex:none}
+.tpl-lead{width:14px;text-align:center;color:var(--ink3t);font-weight:700;font-size:15px;flex:none}
 .tpl-no{width:22px;height:22px;border-radius:7px;background:var(--panel);color:var(--ink2);
   display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none}
 .tpl-row .tpl-name{flex:1;min-width:0;border:none;border-bottom:1.5px solid var(--line);outline:none;
   background:transparent;text-align:left;font-weight:600;font-size:14px;color:var(--ink);
   padding:4px 2px;border-radius:0}
 .tpl-row .tpl-name:focus{border-bottom-color:var(--ink2)}
-.tpl-row .tpl-name::placeholder{color:var(--ink3);font-weight:400}
+.tpl-row .tpl-name::placeholder{color:var(--ink3t);font-weight:400}
 .tpl-rwrap{display:flex;align-items:baseline;gap:3px;flex:none}
 .tpl-ratio{width:42px;border:none;border-bottom:1.5px solid var(--line);outline:none;background:transparent;
-  text-align:center;font-weight:700;font-size:14px;color:var(--warm);padding:4px 0;border-radius:0}
-.tpl-ratio:focus{border-bottom-color:var(--warm)}
-.tpl-ratio::placeholder{color:var(--line);font-weight:400}
-.tpl-unit{font-size:10px;color:var(--ink3);font-style:normal}
-.tpl-x{width:20px;height:20px;border-radius:50%;color:var(--ink3);font-size:14px;line-height:1;flex:none}
-.tpl-eq{display:flex;align-items:center;gap:10px;margin:14px 4px 0;font-size:12px;color:var(--ink3)}
+  text-align:center;font-weight:700;font-size:14px;color:var(--warm-ink);padding:4px 0;border-radius:0}
+.tpl-ratio:focus{border-bottom-color:var(--warm-ink)}
+.tpl-ratio::placeholder{color:var(--ink3t);font-weight:400}
+.tpl-unit{font-size:10px;color:var(--ink3t);font-style:normal}
+.tpl-x{width:20px;height:20px;border-radius:50%;color:var(--ink3t);font-size:14px;line-height:1;flex:none}
+.tpl-eq{display:flex;align-items:center;gap:10px;margin:14px 4px 0;font-size:12px;color:var(--ink3t)}
 .tpl-pv-str{color:var(--ink);font-weight:700;font-size:13.5px;letter-spacing:.06em}
-.tpl-pv-void{color:var(--ink3)}
+.tpl-pv-void{color:var(--ink3t)}
 #cg-addpart{margin-top:12px}
 /* 组合卡拖拽 */
-.combo-drag{flex:none;color:var(--ink3);cursor:grab;touch-action:none;padding:8px 4px;transition:color .15s}
+.combo-drag{flex:none;color:var(--ink3t);cursor:grab;touch-action:none;padding:8px 4px;transition:color .15s}
 .combo-drag:active{color:var(--ink)}
 .combo-card.dragging{opacity:.9;box-shadow:0 10px 26px rgba(47,58,49,.25);transform:scale(1.02);transition:none;z-index:5}
 .combo-card.dragging .combo-drag{color:var(--ink)}
 .combo-card{transition:transform .12s}
-/* 导航结果芯片 */
+/* 导航结果芯片：图标 + 文字是一个整体，绝不能「结/果」竖着断 */
 .nav-chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--ink);
-  background:var(--paper);box-shadow:var(--shadow);border-radius:10px;padding:6px 10px}
+  background:var(--paper);box-shadow:var(--shadow);border-radius:10px;padding:6px 10px;
+  white-space:nowrap;flex:none}
 
 /* ---------------- 区块标题 ---------------- */
 .sec-head{display:flex;align-items:baseline;gap:8px;margin:20px 0 10px}
 .sec-head .sec-zh{font-size:15px;font-weight:600}
-.sec-head .sec-en{font-size:9px;letter-spacing:.2em;color:var(--ink3)}
+.sec-head .sec-en{font-size:9px;letter-spacing:.2em;color:var(--ink3t)}
 
 /* ---------------- 首页 ---------------- */
 .greet{margin:14px 0 4px}
@@ -153,19 +188,25 @@ input{font-family:inherit;color:var(--ink)}
 .card{background:var(--paper);border-radius:var(--r-card);box-shadow:var(--shadow);
   padding:14px 16px;margin-bottom:10px}
 .exp-card .row1{display:flex;align-items:center;gap:8px}
+.exp-card .row1 .exp-del{margin-left:auto}      /* 名称独占一行后，删除靠右兜底 */
 .exp-id{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--ink);
   background:var(--panel);border-radius:6px;padding:2px 8px}
 .exp-name{flex:1;font-size:15px;font-weight:600}
-.tag{font-size:10px;padding:2px 8px;border-radius:999px;letter-spacing:.05em}
+.exp-title{font-size:15px;font-weight:600;line-height:1.25;margin-top:7px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font-size:10px;padding:2px 8px;border-radius:999px;letter-spacing:.05em;flex:none}
 .tag.run{color:var(--ink);background:rgba(192,163,129,.28)}
 .tag.done{color:var(--ink2);background:var(--panel)}
-.exp-meta{display:flex;gap:14px;margin-top:10px;font-size:11px;color:var(--ink3)}
+/* v40 实验卡元信息行：三个短标签各自整体成块（不拆词），放不下时整块换行。
+   之前 span 会被 flex 压到比内容还窄，「96孔板」被拆成「96孔/板」这种半截词。 */
+.exp-meta{display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:10px;font-size:11px;color:var(--ink3t)}
+.exp-meta>span{white-space:nowrap}
 .exp-meta b{color:var(--ink);font-weight:600;font-size:13px}
 .pbar{height:3px;background:var(--panel2);border-radius:2px;margin-top:10px;overflow:hidden}
 .pbar i{display:block;height:100%;background:var(--ink2);border-radius:2px}
 .exp-card .row-act{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
-.exp-best{font-size:11px;color:var(--ink3)}
-.exp-best b{color:var(--warm);font-weight:700;font-size:14px}
+.exp-best{font-size:11px;color:var(--ink3t)}
+.exp-best b{color:var(--warm-ink);font-weight:700;font-size:14px}
 .mini-act{font-size:13px;font-weight:600;border-bottom:1px solid var(--ink);padding-bottom:2px}
 .arch-row{display:flex;align-items:center;gap:10px;cursor:pointer}
 .arch-row:active{background:rgba(83,98,83,.07)}
@@ -173,8 +214,10 @@ input{font-family:inherit;color:var(--ink)}
 .arch-d-row{display:flex;justify-content:space-between;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line);font-size:13px;color:var(--ink2)}
 .arch-d-row:last-child{border-bottom:none}
 .arch-d-row b{color:var(--ink);font-weight:600;font-size:13.5px;text-align:right}
-.arch-name{flex:1;font-size:14px;font-weight:600}
-.arch-sub{font-size:11px;color:var(--ink3);margin-top:2px}
+.arch-name{flex:1;font-size:14px;font-weight:600;min-width:0}
+/* v40 副标题是「96孔板 · 日期」这种短枚举，整体成块比折成半截词好看；
+   太窄时交给渲染端按语义断（渲染处已去掉冗余的「· 已完成」）。 */
+.arch-sub{font-size:11px;color:var(--ink3t);margin-top:2px;text-wrap:pretty}
 .arch-best{font-size:12px;color:var(--ink2);font-weight:600}
 
 /* ---------------- 表单 ---------------- */
@@ -186,12 +229,12 @@ input{font-family:inherit;color:var(--ink)}
 .frow input[type=number],.frow input[type=text],.frow input:not([type]){
   flex:1;border:none;border-bottom:1px solid transparent;background:transparent;
   font-size:15px;font-weight:600;text-align:right;outline:none;min-width:0}
-.frow input:focus{border-bottom-color:var(--warm)}
+.frow input:focus{border-bottom-color:var(--warm-ink)}
 .fval{flex:1;text-align:right;font-size:15px;font-weight:600}
-.fsuffix{font-size:10px;color:var(--ink3)}
+.fsuffix{font-size:10px;color:var(--ink3t)}
 .frow.check{gap:8px}
 .frow.check input{width:16px;height:16px;accent-color:var(--ink2)}
-.hint{font-size:11px;color:var(--ink3);line-height:1.7;margin:12px 2px}
+.hint{font-size:11px;color:var(--ink3t);line-height:1.7;margin:12px 2px;text-wrap:pretty}
 
 /* ---------------- CTA：文字 + 细线（禁胶囊/巨型按钮）；首页「新建实验」用苹果液态玻璃风 ---------------- */
 .cta-row{display:flex;justify-content:flex-end;margin:22px 0 8px}
@@ -223,7 +266,7 @@ input{font-family:inherit;color:var(--ink)}
 .op-row{display:flex;gap:26px;margin:16px 2px 4px}
 .text-act{font-size:13px;font-weight:600;color:var(--ink);
   border-bottom:1px solid var(--line);padding-bottom:4px}
-.text-act.off{color:var(--ink3);border-bottom-color:transparent;pointer-events:none}
+.text-act.off{color:var(--ink3t);border-bottom-color:transparent;pointer-events:none}
 /* s10 底部固定跳孔栏 */
 .well-nav-bar{position:fixed;left:0;right:0;bottom:0;max-width:460px;margin:0 auto;
   background:linear-gradient(to top, var(--bg) 78%, rgba(249,242,234,0));
@@ -238,7 +281,7 @@ input{font-family:inherit;color:var(--ink)}
 .wnav-sep{width:1px;background:rgba(193,190,181,.45);flex:none}
 .wnav-arrow{color:var(--ink2);flex:none}
 .wnav-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
-.wnav-k{font-size:9px;color:var(--ink3);letter-spacing:.14em;white-space:nowrap}
+.wnav-k{font-size:9px;color:var(--ink3t);letter-spacing:.14em;white-space:nowrap}
 .wnav-c{display:flex;align-items:center;gap:6px;font-size:15px;font-weight:700;color:var(--ink)}
 .wnav-btn.r .wnav-c{justify-content:flex-end}
 .wnav-dot{width:8px;height:8px;border-radius:50%;flex:none}
@@ -251,20 +294,20 @@ input{font-family:inherit;color:var(--ink)}
 .combo-badge{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;
   justify-content:center;font-weight:700;font-size:14px;color:var(--ink)}
 .combo-name{font-size:14px;font-weight:600}
-.combo-recipe{font-size:11px;color:var(--ink3);margin-top:2px;letter-spacing:.04em}
+.combo-recipe{font-size:11px;color:var(--ink3t);margin-top:2px;letter-spacing:.04em}
 
 /* ---------------- 孔板分配（s05 手动选孔） ---------------- */
 .assign-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .assign-head .combo-badge{flex:none}
-.assign-pos{font-size:12px;font-weight:700;color:var(--ink3);letter-spacing:.06em;white-space:nowrap}
+.assign-pos{font-size:12px;font-weight:700;color:var(--ink3t);letter-spacing:.06em;white-space:nowrap}
 .assign-count{flex:none;font-size:13px;font-weight:700;color:var(--ink);
   background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px 12px;white-space:nowrap}
 
 /* ---------------- 96 孔板（全项目唯一组件 · 状态参数驱动） ---------------- */
 .plate-card{background:var(--paper);border-radius:var(--r-card);box-shadow:var(--shadow);padding:14px}
 .plate{display:grid;grid-template-columns:20px repeat(12,1fr);gap:4px;align-items:center}
-.plate .plabel{font-size:9px;color:var(--ink3);text-align:center;font-weight:600}
-.plate .pcol{font-size:8px;color:var(--ink3);text-align:center;padding-bottom:2px}
+.plate .plabel{font-size:9px;color:var(--ink3t);text-align:center;font-weight:600}
+.plate .pcol{font-size:8px;color:var(--ink3t);text-align:center;padding-bottom:2px}
 .plate.mini{gap:2px}
 .plate.mini .well{height:100%;aspect-ratio:1/1}
 .well{aspect-ratio:1/1;border-radius:50%;position:relative;border:1px solid transparent}
@@ -279,15 +322,15 @@ input{font-family:inherit;color:var(--ink)}
 
 /* ---------------- 统计 ---------------- */
 .exp-head .t{font-size:18px;font-weight:700}
-.exp-head .s{font-size:11px;color:var(--ink3);margin-top:3px;letter-spacing:.05em}
+.exp-head .s{font-size:11px;color:var(--ink3t);margin-top:3px;letter-spacing:.05em}
 .stat-row{display:flex;background:var(--paper);border-radius:var(--r-card);
   box-shadow:var(--shadow);margin-top:12px;padding:14px 8px}
 .stat{flex:1;text-align:center;position:relative}
 .stat+.stat::before{content:"";position:absolute;left:0;top:15%;height:70%;width:1px;background:rgba(193,190,181,.5)}
 .stat .v{font-size:19px;font-weight:700}
-.stat .v small{font-size:10px;font-weight:500;color:var(--ink3);margin-left:2px}
-.stat .k{font-size:10px;color:var(--ink3);margin-top:3px}
-.stat .v.warm{color:var(--warm)}
+.stat .v small{font-size:10px;font-weight:500;color:var(--ink3t);margin-left:2px}
+.stat .k{font-size:10px;color:var(--ink3t);margin-top:3px;text-wrap:pretty}
+.stat .v.warm{color:var(--warm-ink)}
 
 /* ---------------- 分段控件 & 筛选 chips ---------------- */
 .seg{display:flex;background:var(--panel);border-radius:var(--r-input);padding:3px;margin:8px 0 4px}
@@ -300,25 +343,30 @@ input{font-family:inherit;color:var(--ink)}
 /* ---------------- 单孔详情 ---------------- */
 .well-title{display:flex;align-items:center;gap:10px;margin-top:8px}
 .well-title .coord{font-size:22px;font-weight:700}
-.well-title .recipe{font-size:11px;color:var(--ink3);margin-top:2px}
+.well-title .recipe{font-size:11px;color:var(--ink3t);margin-top:2px}
 .kv-card{margin-top:14px}
 .kv{display:flex;justify-content:space-between;align-items:baseline;
   padding:12px 16px;border-bottom:1px solid rgba(193,190,181,.45)}
 .kv:last-child{border-bottom:none}
 .kv .k{font-size:13px;color:var(--ink2)}
 .kv .v{font-size:15px;font-weight:700}
-.kv .v.warm{color:var(--warm)}
+.kv .v.warm{color:var(--warm-ink)}
 .note-card{font-size:12px;color:var(--ink2);line-height:1.8}
 .note-card textarea{display:block;width:100%;border:none;outline:none;background:transparent;
   font:inherit;font-size:12px;color:var(--ink);line-height:1.8;resize:none;min-height:40px}
-.note-card textarea::placeholder{color:var(--ink3)}
-/* 三行原地编辑（s10） */
-.iedit{display:flex;align-items:baseline;gap:4px}
+.note-card textarea::placeholder{color:var(--ink3t)}
+/* 三行原地编辑（s10）—— v42 输入胶囊：原来「裸虚线下划线 + 悬空占位符」
+   下划线比内容长一截、像坏掉的表单。改为圆角浅底字段：右列等宽对齐，
+   数值+单位收进同一个胶囊里，编辑暗示由常驻虚线改为浅底 + 聚焦提亮。 */
+.iedit{display:flex;align-items:center;justify-content:flex-end;gap:2px;
+  min-width:132px;flex:none;background:rgba(47,58,49,.055);
+  border:1px solid transparent;border-radius:10px;padding:6px 10px;
+  transition:background .16s,border-color .16s}
 .iedit input{border:none;outline:none;background:transparent;text-align:right;
-  font-size:15px;font-weight:700;color:var(--ink);width:96px}
-.iedit input::placeholder{color:var(--ink3);font-weight:400}
-.iedit .unit{font-size:11px;color:var(--ink3)}
-.kv .v.warm{color:var(--warm)}
+  font-size:15px;font-weight:700;color:var(--ink);width:84px;padding:0}
+.iedit input::placeholder{color:var(--ink3t);font-weight:400}
+.iedit .unit{font-size:11px;color:var(--ink3t);flex:none}
+.kv .v.warm{color:var(--warm-ink)}
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .tl{margin-top:8px;padding:6px 16px 12px}
@@ -326,7 +374,7 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .tl-row:last-child{border-left-color:transparent}
 .tl-row::before{content:"";position:absolute;left:-4.5px;top:16px;width:8px;height:8px;
   border-radius:50%;background:var(--bg);border:2px solid var(--ink2)}
-.tl-t{font-size:10px;color:var(--ink3);letter-spacing:.05em}
+.tl-t{font-size:10px;color:var(--ink3t);letter-spacing:.05em}
 .tl-d{font-size:12.5px;color:var(--ink);margin-top:2px}
 .well-edit{display:flex;gap:10px;align-items:center;margin-top:12px}
 .well-edit input{flex:1;background:var(--paper);border:1px solid var(--line);
@@ -335,23 +383,42 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 
 /* ---------------- 结果总览 ---------------- */
 .hero{display:flex;align-items:baseline;gap:10px;margin-top:14px}
-.hero .big{font-size:40px;font-weight:700;color:var(--warm);line-height:1}
+.hero .big{font-size:40px;font-weight:700;color:var(--warm-ink);line-height:1}
 .hero .who{font-size:13px;color:var(--ink2)}
 .hero .who b{color:var(--ink)}
 .dist{margin-top:6px;padding:16px}
 .dist-row{display:flex;align-items:center;gap:10px;margin:9px 0}
-.dist-k{width:64px;font-size:10px;color:var(--ink3)}
+/* v40 64px 装不下「回收率 85–90」，会折成「…85–/90」——放宽到 76px 并整体成块 */
+.dist-k{width:76px;font-size:10px;color:var(--ink3t);white-space:nowrap}
 .dist-bar{flex:1;height:8px;background:var(--panel);border-radius:4px;overflow:hidden}
 .dist-bar i{display:block;height:100%;background:var(--ink2);border-radius:4px}
 .dist-v{width:30px;text-align:right;font-size:11px;font-weight:600}
 .combo-avg .dist-k{width:44px}
 .rank-row{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid rgba(193,190,181,.45)}
 .rank-card{padding:2px 16px 6px}
-.rank-no{width:22px;font-size:13px;font-weight:700;color:var(--ink3)}
-.rank-no.top{color:var(--warm)}
+.rank-no{width:22px;font-size:13px;font-weight:700;color:var(--ink3t)}
+.rank-no.top{color:var(--warm-ink)}
 .rank-coord{width:44px;font-size:15px;font-weight:700}
-.rank-combo{flex:1;display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink2)}
+.rank-combo{flex:1;display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink2);
+  white-space:nowrap;min-width:0}   /* 「组合C」不能竖着断成「组合/C」 */
 .rank-pct{font-size:16px;font-weight:700}
+.rank-assay{font-size:11px;color:var(--ink3t)}
+/* v40 320px 小屏：排行行五列挤不下，纯度列让位（详情页仍有），间距收紧；
+   组合卡同理——徽标/间距各让一点，给配方比式腾出放得下的宽度 */
+@media (max-width:340px){
+  .rank-assay{display:none}
+  .rank-row{gap:9px}
+  .arch-row{gap:8px}
+  .arch-thumb{width:36px;height:36px;border-radius:9px}
+  .arch-name{font-size:13px}
+  .arch-best{font-size:11px}
+  .me-sub{font-size:10px}
+  .combo-card{gap:9px}
+  .combo-badge{width:30px;height:30px}
+  .combo-drag{padding:6px 2px}
+}
+/* 配方比式（乙醇:丙酮:水=2:1:1）整体成块：比值一旦从中间断开就完全读不懂 */
+.combo-recipe.nb{overflow:hidden;text-overflow:ellipsis}
 
 /* ---------------- 试剂库 / 我的 ---------------- */
 .search{display:flex;align-items:center;gap:8px;background:var(--paper);
@@ -360,18 +427,18 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .search svg{flex:none;opacity:.5}
 .rg-row{display:flex;align-items:center;gap:12px}
 .rg-name{font-size:14px;font-weight:600}
-.rg-cas{font-size:10px;color:var(--ink3);letter-spacing:.06em;margin-top:2px}
-.rg-abbr{margin-left:auto;font-size:11px;color:var(--ink3);font-weight:600;letter-spacing:.08em}
+.rg-cas{font-size:10px;color:var(--ink3t);letter-spacing:.06em;margin-top:2px}
+.rg-abbr{margin-left:auto;font-size:11px;color:var(--ink3t);font-weight:600;letter-spacing:.08em}
 .me-head{display:flex;align-items:center;gap:14px;margin:16px 0 6px}
 .avatar{width:56px;height:56px;border-radius:50%;background:var(--ink);color:var(--bg);
   display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700}
 .me-name{font-size:18px;font-weight:700}
-.me-sub{font-size:11px;color:var(--ink3);margin-top:3px}
+.me-sub{font-size:11px;color:var(--ink3t);margin-top:3px}
 .menu{margin-top:14px}
 .menu-row{display:flex;align-items:center;gap:12px;padding:15px 4px;
   border-bottom:1px solid rgba(193,190,181,.45);font-size:14px;font-weight:600}
-.menu-row .arr{margin-left:auto;color:var(--ink3);font-style:normal}
-.menu-row .sub{margin-left:auto;font-size:11px;color:var(--ink3);font-weight:400}
+.menu-row .arr{margin-left:auto;color:var(--ink3t);font-style:normal}
+.menu-row .sub{margin-left:auto;font-size:11px;color:var(--ink3t);font-weight:400}
 .menu-row .sub + .arr{margin-left:6px}
 
 /* ---------------- Bottom Sheet / Toast ---------------- */
@@ -379,7 +446,10 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
   pointer-events:none;transition:opacity .2s;z-index:40}
 .sheet-mask.show{opacity:1;pointer-events:auto}
 .sheet{position:fixed;left:0;right:0;bottom:0;max-width:460px;margin:0 auto;
-  background:var(--bg);border-radius:18px 18px 0 0;transform:translateY(105%);
+  background:var(--glass-strong);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  border:1px solid var(--glass-line);border-bottom:none;
+  box-shadow:0 -8px 32px rgba(47,58,49,.18);
+  border-radius:18px 18px 0 0;transform:translateY(105%);
   transition:transform .24s ease;z-index:41;padding:10px 20px calc(var(--safe-b) + 20px)}
 .sheet.show{transform:translateY(0)}
 .sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--line);margin:4px auto 12px}
@@ -389,7 +459,10 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
   border-radius:var(--r-input);padding:10px;font-size:11px;font-family:monospace;color:var(--ink);outline:none}
 .sheet-body .cta-row{margin:14px 0 0}
 .toast{position:fixed;left:50%;bottom:calc(var(--safe-b) + 34px);transform:translateX(-50%) translateY(20px);
-  background:var(--ink);color:var(--bg);font-size:12.5px;padding:9px 18px;border-radius:999px;
+  /* v41 深色玻璃 Toast：半透明墨绿 + 模糊，浅字对比度按最透情形仍 >4.5:1 */
+  background:rgba(47,58,49,.80);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  border:1px solid rgba(255,255,255,.18);
+  color:var(--bg);font-size:12.5px;padding:9px 18px;border-radius:999px;
   opacity:0;transition:all .22s;z-index:50;pointer-events:none;max-width:82%;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -400,10 +473,10 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .exp-ov-row .exp-name{font-size:14px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .exp-ov-row .pbar{margin-top:8px}
 
-.exp-recipe{margin-top:5px;font-size:10.5px;color:var(--ink3);letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.exp-recipe{margin-top:5px;font-size:10.5px;color:var(--ink3t);letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-.assay-sub{display:block;font-size:9.5px;color:var(--ink3);font-style:normal;font-weight:400;margin-top:2px}
-.rank-assay{font-size:10px;color:var(--ink3);margin-left:6px;white-space:nowrap}
+.assay-sub{display:block;font-size:9.5px;color:var(--ink3t);font-style:normal;font-weight:400;margin-top:2px}
+.rank-assay{font-size:10px;color:var(--ink3t);margin-left:6px;white-space:nowrap}
 
 /* ---------------- v28 高级动效（源自 B站 SPT 10 种高级交互） ---------------- */
 /* 屏幕切换：淡入 + 轻微上浮，替代生硬 fade */
@@ -475,12 +548,134 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
   background:rgba(47,58,49,.75);color:#fff;font-size:12px;line-height:18px;text-align:center;cursor:pointer}
 .ph-add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   width:64px;height:64px;border:1px dashed var(--line);border-radius:10px;
-  color:var(--ink3);font-size:18px;cursor:pointer;flex:none}
+  color:var(--ink3t);font-size:18px;cursor:pointer;flex:none}
 .ph-add span{font-size:10px;letter-spacing:.05em}
 .ph-add:active{transform:scale(.94)}
-.ph-hint{font-size:10px;color:var(--ink3);margin-top:8px;width:100%}
+.ph-hint{font-size:10px;color:var(--ink3t);margin-top:8px;width:100%}
 .photo-viewer{position:fixed;inset:0;background:rgba(24,28,25,.93);z-index:999;
   display:flex;align-items:center;justify-content:center;cursor:zoom-out;animation:viewerIn .2s ease}
 .photo-viewer img{max-width:94vw;max-height:88vh;object-fit:contain;border-radius:8px;
   box-shadow:0 10px 40px rgba(0,0,0,.4)}
 @keyframes viewerIn{from{opacity:0}to{opacity:1}}
+
+/* ============================================================
+   v38 交互成熟化补丁
+   ① 可读性：正文级小字下限、禁用态区分
+   ② 触达：视觉几何完全不动，用 ::after 把命中区扩到 ≥44px
+   ③ 新组件：孔板条件条 / 撤销 Toast / 可编辑暗示 / 空态 / 行箭头
+   ============================================================ */
+
+/* ---- ① 可读性 ---- */
+.plate .pcol{font-size:9.5px}
+.plate .plabel{font-size:10px}
+.nav-title .en{font-size:10px}
+.sec-head .sec-en{font-size:10px}
+.wnav-k{font-size:10px}
+.assay-sub{font-size:10.5px}
+.exp-recipe{font-size:11px}
+.tl-t{font-size:11px}
+.dist-k{font-size:11px}
+.rg-cas{font-size:11px}
+.rank-assay{font-size:11px}
+.stat .k{font-size:11px}
+.stat .v small{font-size:11px}
+.fsuffix{font-size:10.5px}
+.text-act.off{opacity:.42}
+.screen{min-height:100vh;min-height:100dvh}
+
+/* ---- ② 触达尺寸扩展（不改变任何视觉几何） ---- */
+.nav-back,.nav-avatar,.nav-text,.combo-act,.combo-drag,.exp-del,.arch-del,
+.mini-act,.text-act,.cta-line,.fab-sub,.chip,.seg-item,.ghost-add{position:relative}
+.nav-back::after{content:'';position:absolute;inset:-5px -6px}
+.nav-avatar::after{content:'';position:absolute;inset:-5px;border-radius:50%}
+.nav-text::after{content:'';position:absolute;inset:-12px -9px}
+.combo-act::after{content:'';position:absolute;inset:-14px -6px}
+.combo-drag::after{content:'';position:absolute;inset:-7px -2px}
+.exp-del::after{content:'';position:absolute;inset:-14px -8px}
+.arch-del::after{content:'';position:absolute;inset:-12px -8px}
+.mini-act::after{content:'';position:absolute;inset:-13px -8px}
+.text-act::after{content:'';position:absolute;inset:-11px -7px}
+.cta-line::after{content:'';position:absolute;inset:-6px -10px}
+.fab-sub::after{content:'';position:absolute;inset:-3px 0;border-radius:999px}
+.chip::after{content:'';position:absolute;inset:-8px -4px;border-radius:999px}
+.seg-item::after{content:'';position:absolute;inset:-6px 0}
+.ghost-add{min-height:var(--tap);display:flex;align-items:center}
+
+/* ---- ③a 96 孔板「行条件」：把组合×温度×浓度写到行标签上 ----
+   为什么不做成右侧独立一列：390px 屏上 12 列孔已占到极限，再加一列会把
+   单孔从 20.8px 压到 17px。改为占用行标签列（20→34px），孔位只损失 1px。 */
+.plate{grid-template-columns:20px repeat(12,1fr)}
+.plate.withcond{grid-template-columns:34px repeat(12,1fr)}
+.plate.mini.withcond{gap:3px}
+.plate .plabel.cond{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;
+  gap:1px;line-height:1.06;padding-left:1px;overflow:hidden}
+.plate .plabel.cond b{font-size:9.5px;font-weight:700;color:var(--ink2);white-space:nowrap;letter-spacing:0}
+.plate .plabel.cond i{font-size:9px;font-style:normal;color:var(--ink3t);white-space:nowrap;letter-spacing:0}
+@media (max-width:360px){
+  .plate.withcond{grid-template-columns:30px repeat(12,1fr)}
+  .plate .plabel.cond b{font-size:8.5px}
+  .plate .plabel.cond i{font-size:8px}
+}
+
+/* ---- ③b 可撤销 Toast ---- */
+.toast{display:flex;align-items:center;justify-content:center;gap:14px;
+  pointer-events:none;width:max-content}
+.toast.show{pointer-events:auto}
+.toast #toast-undo{flex:none;font-size:12.5px;font-weight:700;color:#F9F2EA;
+  border-bottom:1px solid rgba(249,242,234,.65);padding-bottom:1px}
+
+/* ---- ③c 单孔数值行：可编辑暗示 v42 ----
+   常驻虚线下划线已废弃（观感差），改为浅底胶囊；聚焦时提亮为白底 + 暖棕描边 */
+.iedit:hover{background:rgba(47,58,49,.075)}
+.iedit:focus-within{background:var(--paper);border-color:var(--warm-ink)}
+
+/* ---- ③d 统一空态 ---- */
+.empty-state{background:var(--paper);border-radius:var(--r-card);box-shadow:var(--shadow);
+  padding:32px 22px;text-align:center;margin-top:14px}
+.empty-state .es-t{font-size:14px;font-weight:600;color:var(--ink)}
+.empty-state .es-d{font-size:12.5px;color:var(--ink3t);margin-top:9px;line-height:1.7}
+.empty-state .es-a{display:inline-block;margin-top:18px;font-size:14px;font-weight:600;
+  color:var(--ink);border-bottom:1px solid var(--ink);padding-bottom:4px}
+
+/* ---- ③e 可点击行统一加行尾箭头 ---- */
+.rank-row{cursor:pointer}
+.rank-row::after{content:'›';flex:none;margin-left:4px;font-size:16px;color:var(--ink3t)}
+
+/* ---- ③f 危险操作与浏览入口分区 ---- */
+.op-row.split{margin-top:26px;padding-top:20px;border-top:1px solid rgba(193,190,181,.5);
+  justify-content:flex-start}
+.text-act.danger{color:var(--danger);border-bottom-color:rgba(154,81,71,.5)}
+
+/* ---- ③g 放大孔位：96 孔在 390px 屏上单孔仅 20px，放大到 44px 并允许横向滚动 ---- */
+.plate-card.zoom{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.plate-card.zoom .plate{grid-template-columns:20px repeat(12,44px);gap:5px;min-width:max-content}
+.plate-card.zoom .plate.withcond{grid-template-columns:34px repeat(12,44px)}
+.plate-card.zoom .plate .pcol,
+.plate-card.zoom .plate .plabel{font-size:11px}
+.plate-card.zoom .plate .plabel.cond b{font-size:11px}
+.plate-card.zoom .plate .plabel.cond i{font-size:10px}
+.text-act.on{border-bottom:2px solid var(--ink)}
+
+/* ---- ③h 注记型括号不拆行（v39） ----
+   标签/取值行里的「（……）」是注记，从中间断开非常难看。
+   给它包一层 .nb 保持整组，空间不够时整组换到下一行；
+   窄屏两行、宽屏（如平板）仍是一行，比硬插 <br> 更自适应。
+   只用于短注记（≲8 字）；长括号内容应当改写文案缩短，而不是硬撑一行。 */
+.nb{white-space:nowrap}
+
+/* ---- ③i 孔板横屏（v40）----
+   竖屏下宽度才是瓶颈：12 列挤进 ~320px，单孔只剩 20.8px——这正是「放大孔位」
+   （44px + 横向滚动）存在的原因。横屏把板子转 90°：1–12 走竖向长轴、A–H 走横向
+   短轴，瓶颈由 12 列变成 8 列，单孔升到 ~33px，整板一次看全且不需要滚动。
+   与「放大孔位」互斥：同开等于既要 44px 又只放 8 列，必然又要滚动，等于白转。 */
+.plate-card.land{padding:10px}
+.plate-card.land .plate,
+.plate-card.land .plate.withcond{grid-template-columns:20px repeat(8,1fr);gap:4px}
+.plate-card.land .plate .plabel.num{font-size:9.5px}
+.plate-card.land .plate .plabel.cond{padding-left:0}
+.plate-card.land .plate .plabel.cond b{font-size:9.5px}
+.plate-card.land .plate .plabel.cond i{font-size:9px}
+@media (max-width:360px){
+  .plate-card.land .plate .plabel.cond b{font-size:8.5px}
+  .plate-card.land .plate .plabel.cond i{font-size:8px}
+}

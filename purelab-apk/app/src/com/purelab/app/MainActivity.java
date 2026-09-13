@@ -3,6 +3,7 @@ package com.purelab.app;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
@@ -10,6 +11,8 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.window.OnBackInvokedCallback;
+import android.window.OnBackInvokedDispatcher;
 
 /**
  * PureLab 高通量重结晶实验助手 — WebView 壳。
@@ -56,14 +59,14 @@ public class MainActivity extends Activity {
             }
         });
         webView.addJavascriptInterface(new Bridge(), "Android");
+        registerPredictiveBack();                 /* v38：接管 Android 13+ 返回手势 */
 
         setContentView(webView);
         webView.loadUrl("file:///android_asset/www/index.html");
     }
 
     /** 物理/手势返回键 → 先交给页面内导航栈处理，栈空才退出。 */
-    @Override
-    public void onBackPressed() {
+    private void handleBack() {
         if (webView != null) {
             webView.evaluateJavascript("window.PureLab ? PureLab.onBack() : 'false'",
                     value -> {
@@ -74,6 +77,27 @@ public class MainActivity extends Activity {
         } else {
             finish();
         }
+    }
+
+    /**
+     * Android 13+ 预测式返回：manifest 已声明 enableOnBackInvokedCallback；
+     * 需注册回调接管，否则返回手势会绕过页面栈直接退出。API &lt; 33 自动跳过。
+     */
+    private void registerPredictiveBack() {
+        if (Build.VERSION.SDK_INT < 33) return;
+        getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                new OnBackInvokedCallback() {
+                    @Override
+                    public void onBackInvoked() {
+                        handleBack();
+                    }
+                });
+    }
+
+    @Override
+    public void onBackPressed() {
+        handleBack();          /* API < 33 由此接管；API 33+ 已由 OnBackInvokedCallback 处理 */
     }
 
     @Override

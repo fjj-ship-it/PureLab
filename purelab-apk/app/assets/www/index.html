@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>PureLab 高通量重结晶实验助手</title>
-<link rel="stylesheet" href="app.css?v=36">
+<link rel="stylesheet" href="app.css?v=44">
 </head>
 <body>
 <div id="app">
@@ -48,13 +48,13 @@
     </div>
     <div class="page">
       <div class="form-card">
-        <label class="frow"><span class="flabel">实验名称</span><input id="f-name" value="重结晶纯化筛选-04"></label>
+        <label class="frow"><span class="flabel">实验名称</span><input id="f-name" placeholder="由系统自动生成，可修改"></label>
         <label class="frow"><span class="flabel">待纯化药品</span><input id="f-drug" value="粗品样品 A"></label>
         <label class="frow"><span class="flabel">初始标样总质量（mg）</span><input id="f-mass" type="number" value="9600"></label>
         <label class="frow"><span class="flabel">每孔溶剂投入量（mg）</span><input id="f-dose" type="number" step="0.1" value="100.0"></label>
-        <div class="frow"><span class="flabel">预计占用孔数量</span><span class="fval" id="f-occ">96 / 96 · 自动</span></div>
+        <div class="frow"><span class="flabel">理论最大孔数</span><span class="fval" id="f-occ">96 / 96 · 自动</span></div>
       </div>
-      <p class="hint">96 孔板固定为 8×12（A–H 行 × 1–12 列），每种组合占一整行（12 孔），可在下一步手动调整。</p>
+      <p class="hint">96 孔板固定为 8×12（A–H 行 × 1–12 列），每种条件组合占一整行（12 孔）。<br>此处按「总质量 ÷ 每孔投入量」估算理论上能用多少孔；下一步实际排板时，占用孔数由所选「组合 × 温度 × 浓度」的行数决定，两者不必相等。</p>
       <div class="cta-row"><button class="cta-line" data-go="s04">下一步 <i>→</i></button></div>
     </div>
   </section>
@@ -81,7 +81,7 @@
         <div class="sec-head"><span class="sec-zh">试剂组合</span><span class="sec-en" id="combo-count">5 组</span></div>
         <div id="combo-list"></div>
         <button class="ghost-add" id="combo-add">＋ 新建组合</button>
-        <p class="hint">点击组合卡片勾选本次实验要用的条件（默认不选，可多选）；<b>按住卡片右侧的 ⠿ 上下拖动可调整顺序，编号按新位置自动继承</b>；列表里没有合适的，就点「新建组合」自己建。</p>
+        <p class="hint">点击组合卡片勾选本次实验要用的条件<span class="nb">（默认不选，可多选）</span>；<b>按住卡片右侧的 ⠿ 上下拖动可调整顺序，编号按新位置<span class="nb">自动继承</span></b>；列表里没有合适的，就点「新建组合」自己建。</p>
       </div>
       <div id="panel-temp" style="display:none">
         <div class="sec-head"><span class="sec-zh">温度水平</span><span class="sec-en" id="temp-count">3 档</span></div>
@@ -183,6 +183,8 @@
       <div class="op-row">
         <button class="text-act" data-go="s09">批量录入</button>
         <button class="text-act" id="edit-hint">编辑数据</button>
+        <button class="text-act" id="plate-zoom">放大孔位</button>
+        <button class="text-act" id="plate-land">横屏</button>
       </div>
     </div>
   </section>
@@ -293,6 +295,6 @@
 
   <div class="toast" id="toast"></div>
 </div>
-<script src="app.js?v=37"></script>
+<script src="app.js?v=44"></script>
 </body>
 </html>

@@ -150,6 +150,13 @@ function save() {
 function $(id) { return document.getElementById(id); }
 function esc(s) { return String(s).replace(/[&<>"]/g, function (c) {
   return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+/* v40 归档副标题里的「· 已完成」是冗余信息（所在区块就叫「已归档实验」），
+   而且它挤在窄列里会把「完成」两个字甩到下一行。渲染时去掉，旧数据一并兼容。 */
+function archSub(s) { return String(s || '').replace(/\s*·\s*已完成\s*$/, ''); }
+/* v40 配方比式：比值（= 2 : 1 : 1）用 .nb 绑成一块。
+   窄列放不下时整块落到第二行，比式永远不会从中间断开——
+   「乙醇 : 丙酮 : 水 = 2 :」/「1 : 1」这种断法等于没法读。 */
+function recipeHTML(r) { return esc(r).replace(/=\s*([^=]*?)\s*$/, '<span class="nb">= $1</span>'); }
 
 /* v28 动效工具：删除定向滑出（08）+ 数字滚动 */
 function playLeave(el, done) {
@@ -253,10 +260,22 @@ function bestCoord() {
 
 /* ---------------- Toast / Sheet ---------------- */
 var toastTimer = null;
-function toast(msg) {
-  var t = $('toast'); t.textContent = msg; t.classList.add('show');
+/* v38：toast(msg, undoLabel, undoFn) —— 传 undoFn 时显示撤销按钮并延长停留至 4s */
+function toast(msg, undoLabel, undoFn) {
+  var t = $('toast');
+  if (undoFn) {
+    t.innerHTML = '<span>' + esc(msg) + '</span><button id="toast-undo">' + esc(undoLabel || '撤销') + '</button>';
+    $('toast-undo').onclick = function () {
+      t.classList.remove('show');
+      clearTimeout(toastTimer);
+      undoFn();
+    };
+  } else {
+    t.textContent = msg;
+  }
+  t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function () { t.classList.remove('show'); }, 1900);
+  toastTimer = setTimeout(function () { t.classList.remove('show'); }, undoFn ? 4200 : 1900);
 }
 function openSheet(title, html) {
   $('sheet-title').textContent = title;
@@ -304,46 +323,89 @@ function renderPlate(el, mode, opts) {
   el.innerHTML = '';
   var p = document.createElement('div');
   p.className = 'plate' + (mode === 'mini' ? ' mini' : '');
-  p.appendChild(Object.assign(document.createElement('div'), { className: 'plabel' }));
-  for (var c = 1; c <= 12; c++) {
-    var pc = document.createElement('div'); pc.className = 'pcol'; pc.textContent = c; p.appendChild(pc);
+  if (!opts.land) {          /* 竖屏表头 = 角标 + 列号 1–12；横屏的表头另建（角标 + A–H），步进也不能一样 */
+    p.appendChild(Object.assign(document.createElement('div'), { className: 'plabel' }));
+    for (var c = 1; c <= 12; c++) {
+      var pc = document.createElement('div'); pc.className = 'pcol'; pc.textContent = c; p.appendChild(pc);
+    }
   }
+  /* v38 行条件：颜色只编码「组合」，同一组合的不同温度/浓度在板上无法区分。
+     把「组合 · 温度」与「浓度」写到行标签列（20→34px），不新增列以免压缩孔位。 */
+  var condRows = {}, hasCond = false;
+  ROWS.forEach(function (row) {
+    var coord = row + '1';
+    var cw = DB.wells[coord] || {};
+    var cid = opts.assign ? (opts.assign[coord] || null) : cw.combo;
+    if (!cid) { condRows[row] = null; return; }
+    var t = opts.assignTemp ? opts.assignTemp[coord] : cw.temp;
+    var cc = opts.assignConc ? opts.assignConc[coord] : cw.conc;
+    if (t || cc) hasCond = true;
+    condRows[row] = {
+      line1: comboOf(cid).id + (t ? '·' + String(t).replace(/\s+/g, '') : ''),
+      line2: cc ? String(cc).replace(/\s*mg\s*\/\s*mL/gi, '') : ''
+    };
+  });
+  var showCond = hasCond;
+  if (showCond) p.className += ' withcond';
   var selWell = DB.selWell || bestCoord() || 'C7';
   var bc = bestCoord();
-  ROWS.forEach(function (row) {
-    var rl = document.createElement('div'); rl.className = 'plabel'; rl.textContent = row; p.appendChild(rl);
-    for (var c = 1; c <= 12; c++) {
-      var w = DB.wells[row + c];
-      var d = document.createElement('div');
-      d.className = 'well'; d.setAttribute('data-well', w.coord);
-      if (!w.done) d.classList.add('empty');
-      else {
-        var cm = comboOf(w.combo);
-        d.style.background = cm.color;
-        if (w.combo === 'E') d.style.background = 'rgba(47,58,49,.82)';
-        if (w.combo === 'D') d.style.background = 'rgba(83,98,83,.8)';
-      }
-      if (opts.assign) {                        /* 分配模式：已分配孔=组合色实心，未分配=空形状；当前组合高亮 */
-        var aid = opts.assign[w.coord];
-        if (aid) {
-          var am = comboOf(aid);
-          d.classList.remove('empty');
-          d.style.background = am.color;
-          d.style.border = 'none';
-          if (opts.assignCur && aid === opts.assignCur) d.classList.add('sel');
-        } else {
-          d.classList.add('empty');
-          d.style.background = 'transparent';
-          d.style.border = '';
-        }
-      }
-      if (w.coord === selWell && mode === 'full') d.classList.add('sel');
-      if (opts.selSet && opts.selSet[w.coord]) d.classList.add('sel');
-      if (w.coord === bc && w.done && mode === 'full') d.classList.add('best');
-      if (opts.tap) d.addEventListener('click', function () { opts.tap(this.getAttribute('data-well')); });
-      p.appendChild(d);
+  function makeWell(coord) {
+    var w = DB.wells[coord];
+    var d = document.createElement('div');
+    d.className = 'well'; d.setAttribute('data-well', w.coord);
+    if (!w.done) d.classList.add('empty');
+    else {
+      var cm = comboOf(w.combo);
+      d.style.background = cm.color;
+      if (w.combo === 'E') d.style.background = 'rgba(47,58,49,.82)';
+      if (w.combo === 'D') d.style.background = 'rgba(83,98,83,.8)';
     }
-  });
+    if (opts.assign) {                        /* 分配模式：已分配孔=组合色实心，未分配=空形状；当前组合高亮 */
+      var aid = opts.assign[w.coord];
+      if (aid) {
+        var am = comboOf(aid);
+        d.classList.remove('empty');
+        d.style.background = am.color;
+        d.style.border = 'none';
+        if (opts.assignCur && aid === opts.assignCur) d.classList.add('sel');
+      } else {
+        d.classList.add('empty');
+        d.style.background = 'transparent';
+        d.style.border = '';
+      }
+    }
+    if (w.coord === selWell && mode === 'full') d.classList.add('sel');
+    if (opts.selSet && opts.selSet[w.coord]) d.classList.add('sel');
+    if (w.coord === bc && w.done && mode === 'full') d.classList.add('best');
+    if (opts.tap) d.addEventListener('click', function () { opts.tap(this.getAttribute('data-well')); });
+    return d;
+  }
+  function axisLabel(row) {                    /* 行标签：有行条件时写成「组合·温度 / 浓度」 */
+    var rl = document.createElement('div'); var ci = condRows[row];
+    if (showCond && ci) {
+      rl.className = 'plabel cond';
+      rl.innerHTML = '<b>' + esc(ci.line1) + '</b>' + (ci.line2 ? '<i>' + esc(ci.line2) + '</i>' : '');
+    } else { rl.className = 'plabel'; rl.textContent = row; }
+    return rl;
+  }
+  if (opts.land) {
+    /* v40 横屏：把 96 孔板转 90°——1–12 走竖向（长轴），A–H 走横向（短轴）。
+       竖屏下 12 列挤在 ~320px 内，单孔只剩 20.8px，只能靠「放大孔位」+横向滚动；
+       转过来后瓶颈从 12 列换成 8 列，单孔升到 ~33px，整板一次看全且不需要滚动。
+       坐标含义不变（还是 行字母+列号），只是摆放方向变了，像读板仪器的旋转视图。 */
+    p.appendChild(Object.assign(document.createElement('div'), { className: 'plabel' }));
+    ROWS.forEach(function (row) { p.appendChild(axisLabel(row)); });
+    for (var n = 1; n <= 12; n++) {
+      var nl = document.createElement('div'); nl.className = 'plabel num'; nl.textContent = n;
+      p.appendChild(nl);
+      ROWS.forEach(function (row) { p.appendChild(makeWell(row + n)); });
+    }
+  } else {
+    ROWS.forEach(function (row) {
+      p.appendChild(axisLabel(row));
+      for (var c = 1; c <= 12; c++) p.appendChild(makeWell(row + c));
+    });
+  }
   el.appendChild(p);
 }
 function legendHTML(ids, repeatFrom) {
@@ -353,7 +415,7 @@ function legendHTML(ids, repeatFrom) {
     return '<span class="lg"><i style="background:' + c.color + '"></i>' + c.name + ' · ' + esc(c.recipe) + '</span>';
   }).join('');
   if (repeatFrom != null && repeatFrom < ROWS.length)
-    h += '<span class="lg"><i style="background:' + comboOf(list[0]).color + ';opacity:.45"></i>重复填入区（复筛）</span>';
+    h += '<span class="lg"><i style="background:' + comboOf(list[0]).color + ';opacity:.45"></i>重复填入区<span class="nb">（复筛）</span></span>';
   h += '<span class="lg"><i style="border:1px dashed var(--line);background:transparent"></i>未录入</span>';
   return h;
 }
@@ -389,13 +451,16 @@ function renderHome() {
   } else {
     var cards = ids.map(function (id) {
       var e = DB.exps[id], s = expStats(e), cur = id === DB.curExp;
+      /* v40 排版修正：row1 原来塞了 编号+名称+标签+删除 四样，把名称压到 51px
+         （320px 屏只剩 21px），再长的省略号也只剩一两个字。改成 名称独占一行：
+         第一行放 编号/标签/删除，第二行放完整名称，元信息行放得下也不拆词。 */
       return '<div class="card exp-card dark' + (cur ? ' cur' : '') + '" data-expid="' + id + '"' + (cur ? ' data-go="s07"' : '') + '>' +
         '<div class="row1"><span class="exp-id">' + esc(e.id) + '</span>' +
-        '<span class="exp-name">' + esc(e.name) + '</span>' +
         '<span class="tag run">进行中</span>' +
         '<span class="exp-del" data-delexp="' + id + '">删除</span></div>' +
+        '<div class="exp-title">' + esc(e.name) + '</div>' +
         '<div class="exp-meta"><span>96孔板</span><span><b>' + s.n + '</b>/96 孔已录入</span>' +
-        '<span>当前最佳 <b>' + s.best.toFixed(1) + '%</b></span></div>' +
+        '<span>最佳 <b>' + s.best.toFixed(1) + '%</b></span></div>' +
         '<div class="pbar"><i style="width:' + s.pct.toFixed(1) + '%"></i></div>' +
         '<div class="row-act"><span class="exp-best">进度 ' + s.pct.toFixed(1) + '%</span>' +
         '<span class="mini-act">' + (cur ? '继续实验 →' : '点击进入 →') + '</span></div>' +
@@ -406,7 +471,7 @@ function renderHome() {
   }
   $('home-archive').innerHTML = DB.archives.length ? DB.archives.map(function (a, i) {
     return '<div class="card arch-row fold-item" data-archid="' + a.id + '"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
-      '<div class="arch-name">' + esc(a.name) + '<div class="arch-sub">' + esc(a.sub) + '</div></div>' +
+      '<div class="arch-name">' + esc(a.name) + '<div class="arch-sub">' + esc(archSub(a.sub)) + '</div></div>' +
       '<span class="arch-best">最佳 ' + esc(a.best) + '</span>' +
       '<span class="arch-del" data-delarch="' + a.id + '">删除</span></div>';
   }).join('') : '<p class="hint" style="margin:6px 2px">暂无归档实验 · 在 s11 结果页「完成并归档」后自动收录</p>';
@@ -468,7 +533,8 @@ function showArchDetail(id) {
 function askArchiveExp() {
   if (!DB.exp) { toast('当前没有进行中的实验'); return; }
   var st = stats();
-  openSheet('完成实验并归档', '<p>将 <b>' + esc(DB.exp.id) + ' ' + esc(DB.exp.name) + '</b> 移入归档列表，归档后可在首页点击查看详情。</p>' +
+  openSheet('完成实验并归档', '<p>将 <b>' + esc(DB.exp.id) + ' ' + esc(DB.exp.name) + '</b> 移入归档列表。</p>' +
+    '<p style="margin-top:8px">归档后该实验会从「进行中」移除，可在首页归档区点击查看详情，<b>但不能再回到进行中状态</b>。</p>' +
     '<div class="cta-row"><button class="cta-line" id="arch-go">确认归档 <i>→</i></button></div>');
   $('arch-go').onclick = function () {
     var mx = 0;
@@ -491,26 +557,38 @@ function askArchiveExp() {
     go('s02'); toast('「' + done + '」已归档');
   };
 }
-/* 删除：先定向滑出（08），动画结束后真正移除 */
+/* 删除：先定向滑出（08），动画结束后真正移除；4.2s 内可撤销 */
+function refreshHomeAndOverview() {
+  renderHome();
+  if (document.getElementById('s16').classList.contains('active')) renderExpOverview();
+}
 function leaveThenDeleteExp(id) {
+  var snap = DB.exps[id]; if (!snap) return;
+  var wasCur = DB.curExp === id;
   playLeave(document.querySelector('.exp-card[data-expid="' + id + '"], .exp-ov-row[data-pickexp="' + id + '"]'), function () {
     delete DB.exps[id];
-    if (DB.curExp === id) DB.curExp = Object.keys(DB.exps).sort().reverse()[0] || null;
-    normalizeDB(); save();
-    renderHome();
-    var ov = document.getElementById('expov-page');
-    if (ov && document.getElementById('s16').classList.contains('active')) renderExpOverview();
-    toast('已删除 ' + id);
+    if (wasCur) DB.curExp = Object.keys(DB.exps).sort().reverse()[0] || null;
+    normalizeDB(); save(); refreshHomeAndOverview();
+    toast('已删除 ' + id, '撤销', function () {
+      DB.exps[id] = snap;
+      if (wasCur) DB.curExp = id;
+      normalizeDB(); save(); refreshHomeAndOverview();
+      toast('已恢复 ' + id);
+    });
   });
 }
 function leaveThenDeleteArch(id) {
+  var snap = null, idx = 0;
+  DB.archives.forEach(function (x, i) { if (x.id === id) { snap = x; idx = i; } });
+  if (!snap) return;
   playLeave(document.querySelector('.arch-row[data-archid="' + id + '"]'), function () {
     DB.archives = DB.archives.filter(function (x) { return x.id !== id; });
-    save();
-    renderHome();
-    var ov = document.getElementById('expov-page');
-    if (ov && document.getElementById('s16').classList.contains('active')) renderExpOverview();
-    toast('已删除归档');
+    save(); refreshHomeAndOverview();
+    toast('已删除归档「' + snap.name + '」', '撤销', function () {
+      DB.archives.splice(Math.min(idx, DB.archives.length), 0, snap);
+      save(); refreshHomeAndOverview();
+      toast('已恢复归档');
+    });
   });
 }
 /* 进行中实验轮播：横向拖拽/滚轮 + 惯性 + 居中磁吸 + 距中心动态缩放/透明度/位移 */
@@ -629,17 +707,21 @@ function updateOccupancy() {
   el.style.color = '';
   if (!(mass > 0) || !(dose > 0)) { el.textContent = '— / 96 · 请输入质量与投入量'; return; }
   var need = Math.ceil(mass / dose);
-  if (need > 96) { el.style.color = '#A2554A'; el.textContent = '超出容量 · 需 ' + need + ' 孔（板上限 96）'; return; }
-  el.textContent = need + ' / 96 · 约 ' + Math.ceil(need / 12) + ' 行';
+  if (need > 96) { el.style.color = '#9A5147'; el.innerHTML = '超出容量 · 需 ' + need + ' 孔<span class="nb">（板上限 96）</span>'; return; }
+  el.innerHTML = need + ' / 96 · 约 ' + Math.ceil(need / 12) + ' 行<span class="nb">（按质量估算）</span>';
 }
 $('f-mass').addEventListener('input', updateOccupancy);
 $('f-dose').addEventListener('input', updateOccupancy);
 
-function renderNew() {
+/* v43 默认实验名：实验1、实验2、实验3…（按现有实验最大编号递增，不再链式拼接旧名） */
+function nextExpName() {
   var mx = 0;
   Object.keys(DB.exps).forEach(function (k) { var m = /^EXP-(\d+)$/.exec(k); if (m) mx = Math.max(mx, +m[1]); });
-  var suffix = '-' + ('0' + (mx + 1)).slice(-2);
-  $('f-name').value = (DB.exp && DB.exp.name) ? DB.exp.name + suffix : '重结晶纯化筛选' + suffix;
+  return '实验' + (mx + 1);
+}
+
+function renderNew() {
+  $('f-name').value = nextExpName();
   $('f-mass').value = DB.exp ? DB.exp.totalMass : 9600;
   $('f-dose').value = DB.exp ? DB.exp.dose.toFixed(1) : '100.0';
   updateOccupancy();
@@ -760,7 +842,7 @@ function renderComboList() {
       '<span class="combo-check' + (on ? ' on' : '') + '"></span>' +
       '<span class="combo-badge" style="background:' + c.color + '22;border:1px solid ' + c.color + '55">' + letter + '</span>' +
       '<div class="combo-main"><div class="combo-name">' + esc(c.name) + '</div>' +
-      '<div class="combo-recipe">' + esc(c.recipe) + '</div></div>' +
+      '<div class="combo-recipe">' + recipeHTML(c.recipe) + '</div></div>' +
       '<span class="combo-drag" title="拖动排序"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">' +
       '<circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/>' +
       '<circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/>' +
@@ -833,14 +915,26 @@ function comboDrag(el, cid) {
     document.addEventListener('pointercancel', onUp);
   });
 }
+function usedWellCount(cid) {
+  var n = 0;
+  Object.keys(DB.wells || {}).forEach(function (k) { if (DB.wells[k].combo === cid) n++; });
+  return n;
+}
 function askDelete(cid) {
   var c = comboOf(cid); if (!c) return;
+  var used = usedWellCount(cid);
   openSheet('删除组合',
-    '<p>确定删除「' + esc(c.name) + '」？删除后它不再出现在条件设置列表中，本操作立即生效。</p>' +
+    '<p>确定删除「' + esc(c.name) + '」？' +
+    (used ? '当前实验有 <b>' + used + ' 个孔位</b>在用这个条件，删除后这些孔位的历史数据仍能查看，但新实验里不再可选。'
+          : '删除后它不再出现在条件设置列表中。') +
+    '<br>确认后 4 秒内可撤销。</p>' +
     '<div class="cta-row"><button class="cta-line" id="dl-go">删除 <i>→</i></button></div>');
   $('dl-go').onclick = function () {
     var isPreset = false;
     COMBOS.forEach(function (x) { if (x.id === cid) isPreset = true; });
+    var wasSel = !!DB.wizard.sel[cid];
+    var customIdx = -1;
+    (DB.customCombos || []).forEach(function (x, i) { if (x.id === cid) customIdx = i; });
     if (isPreset) {
       if (DB.deletedCombos.indexOf(cid) < 0) DB.deletedCombos.push(cid);
     } else {
@@ -848,7 +942,16 @@ function askDelete(cid) {
     }
     delete DB.wizard.sel[cid];
     save(); closeSheet(); renderComboList();
-    toast(c.name + ' 已删除');
+    toast(c.name + ' 已删除', '撤销', function () {
+      if (isPreset) {
+        DB.deletedCombos = DB.deletedCombos.filter(function (x) { return x !== cid; });
+      } else if (customIdx > -1) {
+        DB.customCombos.splice(Math.min(customIdx, DB.customCombos.length), 0, c);
+      }
+      if (wasSel) DB.wizard.sel[cid] = true;
+      save(); renderComboList();
+      toast(c.name + ' 已恢复');
+    });
   };
 }
 function comboDetail(cid) {
@@ -970,7 +1073,7 @@ $('combo-add').addEventListener('click', function () {
     var full = c.names.every(String) && c.ratios.every(String);
     $('cg-preview').innerHTML = full
       ? '<span class="tpl-pv-str">' + esc(c.str) + '</span>'
-      : '<span class="tpl-pv-void">配比预览（填写后自动生成）</span>';
+      : '<span class="tpl-pv-void">配比预览<span class="nb">（填写后自动生成）</span></span>';
   }
   $('cg-seg').querySelectorAll('.seg-item').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -1067,6 +1170,7 @@ function renderAssign() {
   }
   renderPlate($('plate-config'), 'mini', {
     assign: DB.wizard.assign, assignCur: auto ? null : cid,
+    assignTemp: DB.wizard.assignTemp, assignConc: DB.wizard.assignConc,
     tap: auto
       ? function () { toast('自动分配按行落孔 · 点「手动选孔」可自定义'); }
       : function (coord) {
@@ -1104,14 +1208,32 @@ function renderAssign() {
     head = '<div class="card assign-head">' +
         '<span class="combo-badge" style="background:' + cm.color + '22;border:1px solid ' + cm.color + '55">' + String.fromCharCode(65 + cur) + '</span>' +
         '<div class="combo-main"><div class="combo-name">正在分配 · ' + esc(condName) + '</div>' +
-        '<div class="combo-recipe">' + esc(cm.recipe) + '</div></div>' +
+        '<div class="combo-recipe">' + recipeHTML(cm.recipe) + '</div></div>' +
         '<span class="assign-count">' + countPair(cid, ct, cc) + ' 孔</span>' +
       '</div>' +
       '<div class="op-row" style="justify-content:space-between">' + nav + '</div>';
   }
   $('assign-cur').innerHTML = seg + head;
   segMount($('am-seg'));
-  $('am-auto').onclick = function () { if (DB.wizard.amode !== 'auto') segSwitch($('am-seg'), $('am-auto'), function () { DB.wizard.amode = 'auto'; save(); renderAssign(); }); };
+  $('am-auto').onclick = function () {
+    if (DB.wizard.amode === 'auto') return;
+    /* v38：手动排过的板切回自动会被重置，先做一次差异判断再确认（autoFillRows 有副作用，调完即还原） */
+    var bkT = DB.wizard.assignTemp, bkC = DB.wizard.assignConc;
+    var curMap = JSON.stringify(DB.wizard.assign || {});
+    var autoMap = JSON.stringify(autoFillRows());
+    DB.wizard.assignTemp = bkT; DB.wizard.assignConc = bkC;
+    if (curMap !== autoMap) {
+      openSheet('切回自动分配',
+        '<p>当前孔位有手动调整。切回自动分配会按「组合 × 温度 × 浓度」重新逐行铺满，<b>手动调整将被覆盖</b>。</p>' +
+        '<div class="cta-row"><button class="cta-line" id="am-go">确认切回 <i>→</i></button></div>');
+      $('am-go').onclick = function () {
+        closeSheet();
+        DB.wizard.amode = 'auto'; save(); renderAssign();
+      };
+      return;
+    }
+    segSwitch($('am-seg'), $('am-auto'), function () { DB.wizard.amode = 'auto'; save(); renderAssign(); });
+  };
   $('am-manual').onclick = function () { if (DB.wizard.amode !== 'manual') segSwitch($('am-seg'), $('am-manual'), function () { DB.wizard.amode = 'manual'; DB.wizard.cur = 0; save(); renderAssign(); }); };
   if (!auto) {
     if (cur > 0) $('assign-prev').onclick = function () { DB.wizard.cur--; save(); renderAssign(); window.scrollTo(0, 0); };
@@ -1119,13 +1241,13 @@ function renderAssign() {
   }
   var temps = selTemps(), concs = selConcs(), multi = temps.length || concs.length;
   $('legend-config').innerHTML = (multi
-    ? pairs.slice(0, ROWS.length).map(function (pp) {
+    ? pairs.slice(0, ROWS.length).map(function (pp, i) {
         var c = comboOf(pp.id);
-        return '<span class="lg"><i style="background:' + c.color + '"></i>' + esc(condLabel(pp)) + '（' + countPair(pp.id, pp.t, pp.c) + ' 孔）</span>';
+        return '<span class="lg"><i style="background:' + c.color + '"></i>' + ROWS[i] + ' 行 · ' + esc(condLabel(pp)) + '<span class="nb">（' + countPair(pp.id, pp.t, pp.c) + ' 孔）</span></span>';
       })
     : sel.map(function (id) {
         var c = comboOf(id);
-        return '<span class="lg"><i style="background:' + c.color + '"></i>' + c.name + ' · ' + esc(c.recipe) + '（' + countCombo(id) + ' 孔）</span>';
+        return '<span class="lg"><i style="background:' + c.color + '"></i>' + c.name + ' · ' + esc(c.recipe) + '<span class="nb">（' + countCombo(id) + ' 孔）</span></span>';
       })
   ).join('') + '<span class="lg"><i style="border:1px dashed var(--line);background:transparent"></i>未分配</span>';
   $('assign-note').textContent = auto
@@ -1145,12 +1267,14 @@ $('assign-step').addEventListener('click', function () {
 var createLock = false;                     /* 防重复提交：三连击只创建一次 */
 function renderConfirm() {
   createLock = false;
-  var name = $('f-name') && $('f-name').value || (DB.exp.name + '-04');
+  var name = ($('f-name') && $('f-name').value.trim()) || nextExpName();
   DB.newName = name;
   var sel = selIds();
   var temps = selTemps(), concs = selConcs();
   var assign = DB.wizard.assign || {};
   var assigned = Object.keys(assign).length;
+  var massV = parseFloat($('f-mass').value), doseV = parseFloat($('f-dose').value);
+  var maxNeed = (massV > 0 && doseV > 0) ? Math.ceil(massV / doseV) : null;   /* v38 口径显式化 */
   var selNames = sel.map(function (id) { return comboOf(id).name; }).join('、');
   $('confirm-card').innerHTML =
     kv('实验名称', esc(name)) + kv('待纯化药品', esc($('f-drug').value)) +
@@ -1159,8 +1283,10 @@ function renderConfirm() {
     kv('试剂组合', sel.length + ' 个 · ' + esc(selNames)) +
     (temps.length ? kv('温度水平', temps.length + ' 档 · ' + esc(temps.join(' / '))) : '') +
     (concs.length ? kv('浓度水平', concs.length + ' 档 · ' + esc(concs.join(' / '))) : '') +
-    kv('预计占用孔数量', assigned + ' / 96 孔');
-  renderPlate($('plate-confirm'), 'mini', { assign: assign });
+    kv('理论最大孔数', (maxNeed == null ? '—' : maxNeed + ' 孔') + '<span class="nb">（按质量估算）</span>') +
+    kv('本次实际分配', assigned + ' / 96 孔', true);
+  renderPlate($('plate-confirm'), 'mini', { assign: assign,
+    assignTemp: DB.wizard.assignTemp, assignConc: DB.wizard.assignConc });
   $('confirm-legend').innerHTML = legendHTML(sel, null).replace('未录入', '未分配空行');
 }
 function kv(k, v, warm) {
@@ -1205,9 +1331,15 @@ $('btn-create').addEventListener('click', function () {
 function renderRun() {
   var st = stats();
   var ui = DB._ui = DB._ui || {};
+  var assignedN = 0;
+  Object.keys(DB.wells).forEach(function (k) { if (DB.wells[k].combo) assignedN++; });
+  var dims = (DB.exp.comboCount || 0) + ' 组合';
+  if (DB.exp.tempLevels && DB.exp.tempLevels.length) dims += ' × ' + DB.exp.tempLevels.length + ' 温度';
+  if (DB.exp.concLevels && DB.exp.concLevels.length) dims += ' × ' + DB.exp.concLevels.length + ' 浓度';
   $('exp-head').innerHTML =
     '<div class="t">' + esc(DB.exp.id) + ' · ' + esc(DB.exp.name) + '</div>' +
-    '<div class="s">96孔板 · 进行中 · 待纯化药品：' + esc(DB.exp.drug) + '</div>';
+    '<div class="s">96孔板 · 进行中 · 待纯化药品：' + esc(DB.exp.drug) + '</div>' +
+    '<div class="s" style="margin-top:5px">投入 ' + (+DB.exp.dose).toFixed(1) + ' mg/孔 · ' + dims + ' · ' + assignedN + '/96 孔已分配</div>';
   $('exp-stats').innerHTML =
     '<div class="stat"><div class="v"><span id="st-n">' + (ui.runN != null ? ui.runN : 0) + '</span><small>/96 孔</small></div><div class="k">已录入 ' + (st.n / 96 * 100).toFixed(1) + '%</div></div>' +
     '<div class="stat"><div class="v warm"><span id="st-best">' + (ui.runBest != null ? ui.runBest.toFixed(1) : '0.0') + '%</span></div><div class="k">当前最佳 · ' + st.best.coord + (st.best.temp ? ' · ' + st.best.temp : '') + (st.best.conc ? ' · ' + st.best.conc : '') + '</div></div>' +
@@ -1222,14 +1354,46 @@ function renderRun() {
 }
 
 /* 08 孔板视图 */
+/* v38 放大孔位：96 孔板在 390px 屏上单孔仅 20px，手指点不准。
+   放大后孔位 44px 并允许横向滚动，默认视图不变。状态全局共享给 s09 点选孔位。
+   v40 横屏：把板子转 90° 让长轴走竖向，单孔升到 ~33px 且整板无需滚动。
+   两种模式互斥——同开等于「既要 44px 又只放 8 列」，必然又要横向滚动，失去意义。 */
+var plateZoom = false, plateLand = false;
+function applyPlateZoom() {
+  ['plate-full', 'plate-pick'].forEach(function (id) {
+    var el = $(id); if (!el) return;
+    var card = el.closest('.plate-card'); if (!card) return;
+    card.classList.toggle('zoom', plateZoom);
+    card.classList.toggle('land', plateLand);
+  });
+  var zb = $('plate-zoom'), lb = $('plate-land');
+  if (zb) { zb.textContent = plateZoom ? '还原孔位' : '放大孔位'; zb.classList.toggle('on', plateZoom); }
+  if (lb) { lb.textContent = plateLand ? '竖屏' : '横屏'; lb.classList.toggle('on', plateLand); }
+}
+function replateAll() {                      /* 两个模式开关共用：s08 与 s09 的板子都要重画 */
+  renderRecord();
+  if (batchMode === 'pick') renderPickPlate();
+}
 function renderRecord() {
   renderPlate($('plate-full'), 'full', {
+    land: plateLand,
     tap: function (coord) {
       DB.selWell = coord; save(); go('s10');   /* 任意孔可查看/录入（含未完成孔） */
     }
   });
   $('legend-full').innerHTML = legendHTML();
+  applyPlateZoom();
 }
+$('plate-zoom').addEventListener('click', function () {
+  plateZoom = !plateZoom;
+  if (plateZoom) { plateLand = false; toast('孔位已放大，可左右滑动查看全板'); }
+  replateAll();
+});
+$('plate-land').addEventListener('click', function () {
+  plateLand = !plateLand;
+  if (plateLand) { plateZoom = false; toast('已横屏：长轴竖向铺满，整板一次看全'); }
+  replateAll();
+});
 $('edit-hint').addEventListener('click', function () {
   toast('点击已完成的孔位即可编辑数据');
 });
@@ -1256,6 +1420,7 @@ function batchUI() {
 }
 function renderPickPlate() {
   renderPlate($('plate-pick'), 'mini', {
+    land: plateLand,
     tap: function (coord) {
       if (batchSelCoords[coord]) delete batchSelCoords[coord];
       else batchSelCoords[coord] = true;
@@ -1263,6 +1428,7 @@ function renderPickPlate() {
     },
     selSet: batchSelCoords
   });
+  applyPlateZoom();
 }
 function updateBatchInfo() {
   var n = selWellCount();
@@ -1311,10 +1477,10 @@ $('b-apply').addEventListener('click', function () {
   var pick = batchMode === 'pick';
   if (pick && !Object.keys(batchSelCoords).length) { toast('请先点选孔位'); return; }
   if (!pick && !Object.keys(batchSel).length) { toast('请先选择' + (batchMode === 'area' ? '区域' : '组合')); return; }
-  var onlyEmpty = $('b-onlyempty').checked, n = 0, skipped = 0, now = nowStr();
+  var onlyEmpty = $('b-onlyempty').checked, n = 0, skipDone = 0, skipUnassigned = 0, now = nowStr();
   function applyWell(w) {
-    if (!w.combo) { skipped++; return; }               /* 未分配列不可录入 */
-    if (onlyEmpty && w.done) { skipped++; return; }
+    if (!w.combo) { skipUnassigned++; return; }        /* 未分配组合的孔不可录入 */
+    if (onlyEmpty && w.done) { skipDone++; return; }
     w.input = dose; w.output = +out.toFixed(1);
     w.purity = +(out / dose * 100).toFixed(1); w.done = true; n++;
   }
@@ -1335,8 +1501,17 @@ $('b-apply').addEventListener('click', function () {
   }
   if (n) { (DB.ops._batch = DB.ops._batch || []).push({ t: now, d: '批量录入 ' + n + ' 孔 · 产出量 ' + out.toFixed(1) + ' mg' }); }
   save(); batchSelCoords = {};
-  if (!n) { toast('所选 ' + skipped + ' 孔均已完成，被「仅填充未完成」跳过'); renderPickPlate(); return; }
-  toast('已应用至 ' + n + ' 孔' + (skipped ? '（跳过已完成 ' + skipped + ' 孔）' : ''));
+  function skipText() {
+    var a = [];
+    if (skipDone) a.push('已完成 ' + skipDone + ' 孔');
+    if (skipUnassigned) a.push('未分配组合 ' + skipUnassigned + ' 孔');
+    return a.join(' · ');
+  }
+  if (!n) {
+    toast(skipText() ? '未写入任何孔位（跳过 ' + skipText() + '）' : '未写入任何孔位');
+    renderPickPlate(); return;
+  }
+  toast('已应用至 ' + n + ' 孔' + (skipText() ? '（跳过 ' + skipText() + '）' : ''));
   back();
 });
 function nowStr() {
@@ -1364,7 +1539,7 @@ function renderWell() {
       '<div class="kv"><span class="k">回收率</span><span class="iedit"><input id="we-pur" type="number" step="0.1" min="0" inputmode="decimal" value="' + (w.purity != null ? w.purity.toFixed(1) : '') + '" placeholder="—"><span class="unit">%</span></span></div>' +
       '<div class="kv"><span class="k">纯度<i class="assay-sub">HPLC 实测 · 选填</i></span><span class="iedit"><input id="we-assay" type="number" step="0.1" min="0" max="100" inputmode="decimal" value="' + (w.assay != null ? w.assay.toFixed(1) : '') + '" placeholder="—"><span class="unit">%</span></span></div>' +
     '</div>' +
-    '<p class="hint">回收率 = 产出量 ÷ 投入量 × 100%（称重自动计算）；纯度需 HPLC 等仪器实测，可留空。</p>' +
+    '<p class="hint">回收率 = 产出量 ÷ 投入量 × 100%，由系统自动算出；也可以直接填回收率，系统会反推产出量 —— 两者填其一即可。<br>纯度需 HPLC 等仪器实测，可留空。数值行点击即可编辑。</p>' +
     '<div class="sec-head"><span class="sec-zh">备注</span><span class="sec-en">NOTE</span></div>' +
     '<div class="card note-card"><textarea id="w-note" rows="2" placeholder="填写备注，可留空">' + esc(w.note || '') + '</textarea>' +
       '<div class="ph-grid" id="w-photos"></div></div>' +
@@ -1551,6 +1726,15 @@ function wellCommit(w, snap) {
 /* 11 结果总览 */
 function renderResults() {
   var st = stats();
+  if (!st.n) {                       /* v38 空态：新建实验 0 孔时不再显示一堆 0.0% */
+    $('results-page').innerHTML =
+      '<div class="empty-state">' +
+        '<div class="es-t">尚未录入任何数据</div>' +
+        '<div class="es-d">这个实验还没有记录结果。<br>录入产出量后，回收率由系统自动计算，这里会生成分布与组合均值。</div>' +
+        '<button class="es-a" data-go="s08">去孔板记录录入 →</button>' +
+      '</div>';
+    return;
+  }
   var ui = DB._ui = DB._ui || {};
   var buckets = { '<85': 0, '85–90': 0, '90–95': 0, '≥95': 0 };
   completedWells().forEach(function (w) {
@@ -1573,7 +1757,7 @@ function renderResults() {
   }).join('');
   $('results-page').innerHTML =
     '<div class="hero dark"><span class="big" id="res-hero">' + (ui.resHero != null ? ui.resHero.toFixed(1) : '0.0') + '%</span>' +
-      '<span class="who">当前最佳回收率<br><b>' + st.best.coord + '</b>（' + comboOf(st.best.combo).name + (st.best.temp ? ' · ' + st.best.temp : '') + (st.best.conc ? ' · ' + st.best.conc : '') + '）</span></div>' +
+      '<span class="who">当前最佳回收率<br><b>' + st.best.coord + '</b><span class="nb">（' + comboOf(st.best.combo).name + (st.best.temp ? ' · ' + st.best.temp : '') + (st.best.conc ? ' · ' + st.best.conc : '') + '）</span></span></div>' +
     '<div class="stat-row">' +
       '<div class="stat"><div class="v"><span id="res-n">' + (ui.resN != null ? ui.resN : 0) + '</span><small>/96</small></div><div class="k">已录入 ' + (st.n / 96 * 100).toFixed(1) + '%</div></div>' +
       '<div class="stat"><div class="v"><span id="res-avg">' + (ui.resAvg != null ? ui.resAvg.toFixed(1) : '0.0') + '%</span></div><div class="k">平均回收率</div></div>' +
@@ -1584,8 +1768,8 @@ function renderResults() {
     '<div class="sec-head"><span class="sec-zh">组合均值</span><span class="sec-en">BY COMBO</span></div>' +
     '<div class="card dist combo-avg">' + avgRows + '</div>' +
     '<div class="op-row"><button class="text-act" data-go="s12">最佳条件</button>' +
-    '<button class="text-act" data-go="s13">结果排名</button>' +
-    '<button class="text-act" id="btn-archive">完成并归档</button></div>';
+    '<button class="text-act" data-go="s13">结果排名</button></div>' +
+    '<div class="op-row split"><button class="text-act danger" id="btn-archive">完成并归档</button></div>';
   var ab = $('btn-archive'); if (ab) ab.onclick = askArchiveExp;
   countUp($('res-hero'), st.best.purity, 1, '%');
   countUp($('res-n'), st.n, 0);
@@ -1607,8 +1791,8 @@ function renderBest() {
     '<div class="card" style="margin-top:14px">' +
       '<div class="row1" style="display:flex;align-items:center;gap:10px">' +
         '<span class="combo-badge" style="background:' + cm.color + '22;border:1px solid ' + cm.color + '55">' + cm.id + '</span>' +
-        '<div><div class="combo-name">' + cm.name + '</div><div class="combo-recipe">' + esc(cm.recipe) + '</div></div>' +
-        '<span style="margin-left:auto;font-size:26px;font-weight:700;color:var(--warm)">' + w.purity.toFixed(1) + '%</span>' +
+        '<div><div class="combo-name">' + cm.name + '</div><div class="combo-recipe">' + recipeHTML(cm.recipe) + '</div></div>' +
+        '<span style="margin-left:auto;font-size:26px;font-weight:700;color:var(--warm-ink)">' + w.purity.toFixed(1) + '%</span>' +
       '</div>' +
       '<div class="pbar" style="margin-top:14px"><i style="width:' + w.purity + '%;background:var(--warm)"></i></div>' +
     '</div>' +
@@ -1720,53 +1904,113 @@ function rgList(q) {
 }
 
 /* 15 我的 */
+/* v38 从备份文件导入：先展示即将导入的规模，确认后才覆盖本机数据 */
+function askImport(obj) {
+  var n = Object.keys(obj.exps || {}).length;
+  var a = (obj.archives || []).length;
+  var r = (obj.reagents || []).length;
+  openSheet('导入数据',
+    '<p>备份文件读取成功，确认后将<b>替换</b>本机当前的全部数据：</p>' +
+    '<div class="form-card" style="margin-top:10px">' +
+      kv('进行中实验', n + ' 个') + kv('归档实验', a + ' 个') + kv('试剂条目', r + ' 条') +
+    '</div>' +
+    '<p style="margin-top:12px">此操作不可撤销。若本机现有数据还需要，请退出本层先导出备份。</p>' +
+    '<div class="cta-row"><button class="cta-line" id="im-go">确认导入 <i>→</i></button></div>');
+  $('im-go').onclick = function () {
+    DB = obj;
+    delete DB._ui;
+    if (!DB.curExp || !DB.exps[DB.curExp]) DB.curExp = Object.keys(DB.exps).sort().reverse()[0] || null;
+    normalizeDB();
+    save(); closeSheet();
+    stack = ['s02'];
+    show('s02');
+    toast('导入完成 · ' + n + ' 个实验');
+  };
+}
 function renderProfile() {
   var st = stats();
-  var best = 0, bestId = '—', bestTxt = '';
+  var best = 0, bestId = '—', bestHtml = '';
   Object.keys(DB.exps).forEach(function (id) {
     var w = bestWellOf(DB.exps[id]);
     if (w && w.purity > best) {
       best = w.purity; bestId = id;
-      bestTxt = esc(w.coord) + ' · ' + esc(comboOf(w.combo).name);
+      /* v40 排版修正：整段「C7 · 组合C」用 .nb 绑成一块，窄列放不下时整块换行，
+         不会出现「……C7·」这种分隔符悬在行尾的情况 */
+      bestHtml = '<span class="nb">' + esc(w.coord) + ' · ' + esc(comboOf(w.combo).name) + '</span>';
     }
   });
   $('profile-page').innerHTML =
     '<div class="me-head"><div class="avatar">L</div>' +
       '<div><div class="me-name">LabExplorer</div>' +
-      '<div class="me-sub">专注实验操作 · 数据本地留存 · 不做自动推荐</div></div></div>' +
+      '<div class="me-sub">数据本地留存 · 不做自动推荐</div></div></div>' +
     '<div class="stat-row">' +
       '<div class="stat"><div class="v">' + (DB.exp ? DB.exp.comboCount : 0) + '</div><div class="k">试剂组合</div></div>' +
       '<div class="stat"><div class="v">' + DB.reagents.length + '</div><div class="k">试剂条目</div></div>' +
-      '<div class="stat"><div class="v warm">' + (best ? best.toFixed(1) + '%' : '—') + '</div><div class="k">' + esc(bestId) + ' 最佳' + (best ? ' · ' + bestTxt : '') + '</div></div>' +
+      '<div class="stat"><div class="v warm">' + (best ? best.toFixed(1) + '%' : '—') + '</div><div class="k">' + esc(bestId) + ' 最佳 ' + bestHtml + '</div></div>' +
     '</div>' +
     '<div class="menu">' +
       menuRow('我的实验', '', 's16') +
       menuRow('试剂库', '', 's14') +
-      '<div class="menu-row" id="m-backup">数据备份<span class="sub">JSON</span><i class="arr">›</i></div>' +
+      '<div class="menu-row" id="m-backup">数据备份与恢复<span class="sub">导出 / 导入</span><i class="arr">›</i></div>' +
       '<div class="menu-row" id="m-help">帮助与反馈<i class="arr">›</i></div>' +
       '<div class="menu-row" id="m-reset">设置<span class="sub">重置演示数据</span><i class="arr">›</i></div>' +
-      '<div class="menu-row" id="m-about">关于 PureLab<span class="sub">v1.0</span><i class="arr">›</i></div>' +
+      '<div class="menu-row" id="m-about">关于 PureLab<span class="sub">v2.11</span><i class="arr">›</i></div>' +
     '</div>';
   $('m-help').onclick = function () {
     openSheet('帮助与反馈',
       '<div class="form-card">' +
       kv('记录建议', '产出量称重后立即录入，支持批量按行录入') +
-      kv('数据安全', '全部数据仅保存在本机，可在「数据备份」导出 JSON') +
+      kv('数据安全', '全部数据仅保存在本机；「数据备份与恢复」可导出 JSON 文件，换机或重装后导回即可完整恢复') +
       kv('修改数据', '孔板页点击任意孔位即可查看、修改或清除') + '</div>' +
       '<p class="hint">V1 暂无在线反馈通道，问题请记录后联系课程负责同学。</p>');
   };
   $('m-backup').onclick = function () {
-    openSheet('数据备份 · JSON 预览',
-      '<textarea id="bk-box">' + esc(JSON.stringify(DB, null, 1)) + '</textarea>' +
-      '<div class="cta-row"><button class="cta-line" id="bk-copy">全选并复制 <i>→</i></button></div>');
+    var d = new Date(), pd = function (x) { return (x < 10 ? '0' : '') + x; };
+    var stamp = d.getFullYear() + pd(d.getMonth() + 1) + pd(d.getDate());
+    openSheet('数据备份与恢复',
+      '<p>导出当前全部数据（实验、孔板记录、归档、试剂库）为 JSON 文件。<br>' +
+      '换手机或重装 App 后，用同一份文件「从文件导入」即可完整恢复。</p>' +
+      '<div class="op-row" style="margin-top:14px">' +
+        '<button class="text-act" id="bk-file">保存为文件</button>' +
+        '<button class="text-act" id="bk-copy">复制到剪贴板</button>' +
+        '<button class="text-act" id="bk-import">从文件导入</button>' +
+      '</div>' +
+      '<textarea id="bk-box" style="margin-top:14px">' + esc(JSON.stringify(DB, null, 1)) + '</textarea>' +
+      '<input type="file" id="bk-in" accept=".json,application/json" hidden>');
+    $('bk-file').onclick = function () {
+      try {
+        var blob = new Blob([JSON.stringify(DB)], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = 'purelab-backup-' + stamp + '.json';
+        document.body.appendChild(a); a.click();
+        setTimeout(function () { URL.revokeObjectURL(url); document.body.removeChild(a); }, 2000);
+        toast('已导出 purelab-backup-' + stamp + '.json');
+      } catch (e) { toast('导出失败，可改用「复制到剪贴板」'); }
+    };
     $('bk-copy').onclick = function () {
       var box = $('bk-box'); box.focus(); box.select();
       var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
       toast(ok ? '已复制到剪贴板' : '已全选，长按文本框复制');
     };
+    $('bk-import').onclick = function () { $('bk-in').click(); };
+    $('bk-in').onchange = function () {
+      var f = this.files && this.files[0]; if (!f) return;
+      var fr = new FileReader();
+      fr.onload = function () {
+        var obj = null;
+        try { obj = JSON.parse(fr.result); } catch (e) { }
+        if (!obj || typeof obj !== 'object') { toast('文件不是有效的 JSON'); return; }
+        if (!obj.exps || typeof obj.exps !== 'object') { toast('备份文件结构不匹配（缺少 exps）'); return; }
+        askImport(obj);
+      };
+      fr.onerror = function () { toast('文件读取失败'); };
+      fr.readAsText(f);
+    };
   };
   $('m-reset').onclick = function () {
     openSheet('重置演示数据', '<p>将清除本机保存的全部实验数据，恢复为初始演示数据（3 个进行中实验）。</p>' +
+      '<p style="margin-top:8px">此操作不可撤销。<b>如需保留现有数据，请先退出本层，用「数据备份与恢复 → 保存为文件」导出。</b></p>' +
       '<div class="cta-row"><button class="cta-line" id="rs-go">确认重置 <i>→</i></button></div>');
     $('rs-go').onclick = function () {
       try { localStorage.removeItem('purelab_db'); } catch (e) {}
@@ -1775,9 +2019,15 @@ function renderProfile() {
   };
   $('m-about').onclick = function () {
     openSheet('关于 PureLab',
-      '<p><b>PureLab 高通量重结晶实验助手 v1.0</b></p>' +
+      '<p><b>PureLab 高通量重结晶实验助手 v2.11</b></p>' +
       '<p style="margin-top:8px">15 屏结构复刻自设计基准板（purelab_ref.png），视觉令牌取自原图实测 7 色色板。' +
-      '96 孔板为全项目唯一组件（8×12，A–H × 1–12），状态由数据参数驱动。</p>');
+      '96 孔板为全项目唯一组件（8×12，A–H × 1–12），状态由数据参数驱动。<br>' +
+      'v2.11 起：液态玻璃视觉（导航/弹层/Toast 半透明模糊，老机型自动回退）；' +
+      '单孔数值行改为圆角输入胶囊；默认实验名改为「实验1、实验2…」不再链式变长。<br>' +
+      'v2.10 起：孔板新增「横屏」视图（长轴竖向铺满，整板一次看全、无需横向滚动）；' +
+      '全应用排版治理——括号/比式/比值不再从中间断开，末行不再剩孤字。<br>' +
+      'v2.9 起：注记括号整组换行，不再从中间断行。<br>' +
+      'v2.8 起：孔板行标签标出每行的组合 · 温度 · 浓度；删除操作 4 秒内可撤销；支持备份文件导入恢复。</p>');
   };
 }
 function menuRow(label, sub, target) {
@@ -1811,7 +2061,7 @@ function renderExpOverview() {
   }).join('') : '<p class="hint" style="margin:6px 2px 14px">暂无进行中实验 · 首页「新建实验」开始</p>';
   var archived = DB.archives.length ? DB.archives.map(function (a, i) {
     return '<div class="card arch-row fold-item" data-archid="' + a.id + '"><span class="arch-thumb">' + LEAF_SVG + '</span>' +
-      '<div class="arch-name">' + esc(a.name) + '<div class="arch-sub">' + esc(a.sub) + '</div></div>' +
+      '<div class="arch-name">' + esc(a.name) + '<div class="arch-sub">' + esc(archSub(a.sub)) + '</div></div>' +
       '<span class="arch-best">最佳 ' + esc(a.best) + '</span>' +
       '<span class="arch-del" data-delarch="' + a.id + '">删除</span></div>';
   }).join('') : '<p class="hint" style="margin:6px 2px">暂无归档实验</p>';
